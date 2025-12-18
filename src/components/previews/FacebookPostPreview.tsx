@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Heart, MessageCircle, MoreHorizontal, Share2 } from "lucide-react";
 
 import { MediaPlaceholder } from "@/components/previews/MediaPlaceholder";
