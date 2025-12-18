@@ -10,6 +10,7 @@ import {
   hasGenerationAccess,
   isTrialActive,
 } from "@/lib/billing/quota";
+import { getBrandProfileCompleteness } from "@/lib/brand/profile";
 import { prisma } from "@/lib/db";
 import { getRatelimit } from "@/lib/ratelimit";
 
@@ -64,6 +65,13 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+    const completeness = getBrandProfileCompleteness(brand);
+    if (!completeness.complete) {
+      return NextResponse.json(
+        { ok: false, error: "BRAND_PROFILE_INCOMPLETE", missing: completeness.missing },
+        { status: 400 },
+      );
+    }
 
     const memory = await prisma.aiMemory.findUnique({
       where: { accountId: account.id },
@@ -80,7 +88,10 @@ export async function POST(req: Request) {
         targetAudience: brand.targetAudience,
         goals: brand.goals,
         colors: brand.colorsJson,
-        voiceMode: brand.voiceMode,
+        voiceMode:
+          brand.voiceMode === "preset"
+            ? `preset:${brand.voicePreset ?? ""}`
+            : "uploaded",
         voiceDocText: null,
       },
       memorySummary: memory?.memorySummary ?? "",

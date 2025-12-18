@@ -6,6 +6,8 @@ import { getCloudinary } from "@/lib/cloudinary";
 
 const bodySchema = z.object({
   folder: z.string().min(1).default("smm"),
+  resourceType: z.enum(["image", "raw", "video", "auto"]).default("auto"),
+  allowedFormats: z.array(z.string().min(1)).optional(),
 });
 
 export async function POST(req: Request) {
@@ -19,6 +21,8 @@ export async function POST(req: Request) {
     const paramsToSign = {
       folder: body.folder,
       timestamp,
+      resource_type: body.resourceType,
+      ...(body.allowedFormats?.length ? { allowed_formats: body.allowedFormats.join(",") } : {}),
     };
     const signature = cloudinary.utils.api_sign_request(
       paramsToSign,
@@ -32,6 +36,8 @@ export async function POST(req: Request) {
       folder: body.folder,
       apiKey: cloudinary.config().api_key,
       cloudName: cloudinary.config().cloud_name,
+      resourceType: body.resourceType,
+      allowedFormats: body.allowedFormats ?? null,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";

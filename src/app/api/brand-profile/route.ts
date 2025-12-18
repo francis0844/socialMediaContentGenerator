@@ -3,20 +3,31 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
 import { requireVerifiedSession } from "@/lib/auth/session";
+import { getBrandProfileCompleteness } from "@/lib/brand/profile";
 import { prisma } from "@/lib/db";
+
+const voiceModeSchema = z.enum(["preset", "uploaded"]);
+const voicePresetSchema = z.enum([
+  "professional",
+  "friendly",
+  "bold",
+  "playful",
+  "inspirational",
+]);
 
 const brandProfileSchema = z.object({
   brandName: z.string().min(1),
   logoUrl: z.string().url().optional().nullable(),
-  about: z.string().min(1),
+  companyOverview: z.string().min(1),
   niche: z.string().min(1),
   colors: z
     .array(z.object({ name: z.string().min(1), hex: z.string().min(3) }))
     .optional()
     .nullable(),
-  targetAudience: z.string().optional().nullable(),
-  goals: z.string().optional().nullable(),
-  voiceMode: z.string().optional().nullable(),
+  targetAudience: z.string().min(1),
+  goals: z.string().min(1),
+  brandVoiceMode: voiceModeSchema,
+  voicePreset: voicePresetSchema.optional().nullable(),
   voiceDocUrl: z.string().url().optional().nullable(),
 });
 
@@ -28,21 +39,25 @@ export async function GET() {
       where: { accountId: session.accountId },
     });
 
+    const completeness = getBrandProfileCompleteness(profile);
+
     return NextResponse.json({
       ok: true,
       profile: profile
         ? {
             brandName: profile.brandName,
             logoUrl: profile.logoUrl,
-            about: profile.about,
+            companyOverview: profile.about,
             niche: profile.niche,
             colors: profile.colorsJson,
             targetAudience: profile.targetAudience,
             goals: profile.goals,
-            voiceMode: profile.voiceMode,
+            brandVoiceMode: profile.voiceMode,
+            voicePreset: profile.voicePreset,
             voiceDocUrl: profile.voiceDocUrl,
           }
         : null,
+      completeness,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
@@ -58,6 +73,12 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const parsed = brandProfileSchema.parse(body);
 
+    if (parsed.brandVoiceMode === "uploaded") {
+      if (!parsed.voiceDocUrl) throw new Error("VOICE_DOC_REQUIRED");
+    } else {
+      if (!parsed.voicePreset) throw new Error("VOICE_PRESET_REQUIRED");
+    }
+
     const colorsJson =
       parsed.colors === null ? Prisma.JsonNull : (parsed.colors ?? undefined);
 
@@ -66,41 +87,47 @@ export async function PUT(req: Request) {
       update: {
         brandName: parsed.brandName,
         logoUrl: parsed.logoUrl ?? null,
-        about: parsed.about,
+        about: parsed.companyOverview,
         niche: parsed.niche,
         colorsJson,
-        targetAudience: parsed.targetAudience ?? null,
-        goals: parsed.goals ?? null,
-        voiceMode: parsed.voiceMode ?? null,
+        targetAudience: parsed.targetAudience,
+        goals: parsed.goals,
+        voiceMode: parsed.brandVoiceMode,
+        voicePreset: parsed.brandVoiceMode === "preset" ? parsed.voicePreset ?? null : null,
         voiceDocUrl: parsed.voiceDocUrl ?? null,
       },
       create: {
         accountId: session.accountId,
         brandName: parsed.brandName,
         logoUrl: parsed.logoUrl ?? null,
-        about: parsed.about,
+        about: parsed.companyOverview,
         niche: parsed.niche,
         colorsJson: colorsJson ?? Prisma.JsonNull,
-        targetAudience: parsed.targetAudience ?? null,
-        goals: parsed.goals ?? null,
-        voiceMode: parsed.voiceMode ?? null,
+        targetAudience: parsed.targetAudience,
+        goals: parsed.goals,
+        voiceMode: parsed.brandVoiceMode,
+        voicePreset: parsed.brandVoiceMode === "preset" ? parsed.voicePreset ?? null : null,
         voiceDocUrl: parsed.voiceDocUrl ?? null,
       },
     });
+
+    const completeness = getBrandProfileCompleteness(profile);
 
     return NextResponse.json({
       ok: true,
       profile: {
         brandName: profile.brandName,
         logoUrl: profile.logoUrl,
-        about: profile.about,
+        companyOverview: profile.about,
         niche: profile.niche,
         colors: profile.colorsJson,
         targetAudience: profile.targetAudience,
         goals: profile.goals,
-        voiceMode: profile.voiceMode,
+        brandVoiceMode: profile.voiceMode,
+        voicePreset: profile.voicePreset,
         voiceDocUrl: profile.voiceDocUrl,
       },
+      completeness,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";

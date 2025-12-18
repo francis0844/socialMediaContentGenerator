@@ -56,6 +56,11 @@ enum FeedbackDecision {
   reject
 }
 
+enum BrandVoiceMode {
+  preset
+  uploaded
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -141,9 +146,10 @@ model BrandProfile {
   about          String
   niche          String
   colorsJson     Json?
-  targetAudience String?
-  goals          String?
-  voiceMode      String?
+  targetAudience String   @default("")
+  goals          String   @default("")
+  voiceMode      BrandVoiceMode @default(preset)
+  voicePreset    String?
   voiceDocUrl    String?
   updatedAt      DateTime @updatedAt
   createdAt      DateTime @default(now())
