@@ -19,7 +19,11 @@ export function ThemeToggle({
         type="button"
         size="sm"
         variant={value === "light" ? "secondary" : "outline"}
-        className={value === "light" ? "bg-white text-slate-900 border-slate-300" : "bg-white text-slate-800 hover:bg-slate-100"}
+        className={
+          value === "light"
+            ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
+            : "bg-white text-slate-800 hover:bg-slate-100"
+        }
         onClick={() => onChange("light")}
       >
         Light
@@ -28,7 +32,11 @@ export function ThemeToggle({
         type="button"
         size="sm"
         variant={value === "dark" ? "secondary" : "outline"}
-        className={value === "dark" ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-white text-slate-800 hover:bg-slate-100"}
+        className={
+          value === "dark"
+            ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#009c8d]"
+            : "bg-white text-slate-800 hover:bg-slate-100"
+        }
         onClick={() => onChange("dark")}
       >
         Dark

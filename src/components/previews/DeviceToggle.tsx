@@ -19,7 +19,11 @@ export function DeviceToggle({
         type="button"
         size="sm"
         variant={value === "desktop" ? "secondary" : "outline"}
-        className={value === "desktop" ? "bg-white text-slate-900 border-slate-300" : undefined}
+        className={
+          value === "desktop"
+            ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
+            : "bg-white text-slate-800 hover:bg-slate-100"
+        }
         onClick={() => onChange("desktop")}
       >
         Desktop
@@ -28,7 +32,11 @@ export function DeviceToggle({
         type="button"
         size="sm"
         variant={value === "mobile" ? "secondary" : "outline"}
-        className={value === "mobile" ? "bg-white text-slate-900 border-slate-300" : undefined}
+        className={
+          value === "mobile"
+            ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
+            : "bg-white text-slate-800 hover:bg-slate-100"
+        }
         onClick={() => onChange("mobile")}
       >
         Mobile

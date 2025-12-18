@@ -17,6 +17,7 @@ export function FacebookPostPreview({
   device: PreviewDevice;
   theme: PreviewTheme;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const name = brand?.brandName || "Lexus";
   const handle = toHandle(name).replace(/^@/, "");
   const src = brand?.logoUrl || "/lexus-mark.svg";
@@ -26,7 +27,7 @@ export function FacebookPostPreview({
   const fullCaption = formatCaptionWithHashtags(output);
   const max = device === "mobile" ? 200 : 260;
   const showSeeMore = fullCaption.length > max;
-  const displayCaption = showSeeMore ? `${fullCaption.slice(0, max).trim()}…` : fullCaption;
+  const displayCaption = expanded || !showSeeMore ? fullCaption : `${fullCaption.slice(0, max).trim()}…`;
 
   return (
     <div
@@ -62,28 +63,19 @@ export function FacebookPostPreview({
         </div>
 
         <div className={cn("mt-3 text-sm leading-relaxed", theme === "light" ? "text-black/80" : "text-white/85")}>
-          {showSeeMore ? (
-            <>
-              <span>{displayCaption} </span>
-              <button
-                type="button"
-                className={cn(
-                  "font-semibold underline-offset-2",
-                  theme === "light" ? "text-blue-600 hover:text-blue-700" : "text-blue-300 hover:text-blue-200",
-                )}
-                onClick={() => {
-                  const el = document.getElementById(`fb-full-${output.platform}-${output.type}`);
-                  if (el) {
-                    el.textContent = fullCaption;
-                  }
-                }}
-              >
-                See more
-              </button>
-            </>
-          ) : (
-            <span id={`fb-full-${output.platform}-${output.type}`}>{fullCaption}</span>
-          )}
+          <span>{displayCaption}</span>
+          {!expanded && showSeeMore ? (
+            <button
+              type="button"
+              className={cn(
+                "ml-2 font-semibold underline-offset-2",
+                theme === "light" ? "text-blue-600 hover:text-blue-700" : "text-blue-300 hover:text-blue-200",
+              )}
+              onClick={() => setExpanded(true)}
+            >
+              See more
+            </button>
+          ) : null}
         </div>
       </div>
 
