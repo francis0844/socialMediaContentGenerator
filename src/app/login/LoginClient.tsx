@@ -90,10 +90,20 @@ export function LoginClient() {
           </div>
 
           {error ? (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div className="space-y-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error === "EMAIL_NOT_VERIFIED"
                 ? "Please verify your email before signing in."
                 : error}
+              {error === "EMAIL_NOT_VERIFIED" ? (
+                <div className="text-xs text-destructive">
+                  Use the verification link sent to your email (logged in server console during dev),
+                  then paste the token on the{" "}
+                  <a className="underline" href={`/verify?email=${encodeURIComponent(email)}`}>
+                    verify page
+                  </a>
+                  .
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -116,4 +126,3 @@ export function LoginClient() {
     </div>
   );
 }
-

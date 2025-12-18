@@ -236,7 +236,11 @@ export function LibraryPage({ status }: { status: Status }) {
                 {status === "generated" ? (
                   <div className="flex items-center gap-2">
                     <Button onClick={() => openDecision(i, "accept")}>Accept</Button>
-                    <Button variant="outline" onClick={() => openDecision(i, "reject")}>
+                    <Button
+                      variant="outline"
+                      className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                      onClick={() => openDecision(i, "reject")}
+                    >
                       Reject
                     </Button>
                   </div>
@@ -283,9 +287,13 @@ export function LibraryPage({ status }: { status: Status }) {
             {selected.status === "generated" ? (
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
                 <Button onClick={() => openDecision(selected, "accept")}>Accept</Button>
-                <Button variant="outline" onClick={() => openDecision(selected, "reject")}>
-                  Reject
-                </Button>
+              <Button
+                variant="outline"
+                className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                onClick={() => openDecision(selected, "reject")}
+              >
+                Reject
+              </Button>
               </div>
             ) : (
               <div className="mt-6 flex items-center justify-end">
