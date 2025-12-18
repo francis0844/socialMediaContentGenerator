@@ -1,6 +1,9 @@
 "use client";
 
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -40,9 +43,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-dvh bg-black text-white">
       <div className="mx-auto max-w-md px-6 py-16">
-        <div className="text-sm tracking-[0.3em] uppercase text-white/70">
-          Lexus
-        </div>
+        <div className="text-sm tracking-[0.3em] text-white/70 uppercase">Lexus</div>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">
           {mode === "signup" ? "Create your account" : "Welcome back"}
         </h1>
@@ -122,4 +123,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

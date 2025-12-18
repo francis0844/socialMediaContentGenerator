@@ -24,10 +24,7 @@ export async function POST(req: Request) {
     if (rate) {
       const rl = await rate.limit(`gen:${authed.firebaseUid}`);
       if (!rl.success) {
-        return NextResponse.json(
-          { ok: false, error: "RATE_LIMITED" },
-          { status: 429 },
-        );
+        return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
       }
     }
 
@@ -37,10 +34,7 @@ export async function POST(req: Request) {
         trialEndsAt: account.trialEndsAt,
       })
     ) {
-      return NextResponse.json(
-        { ok: false, error: "PAYMENT_REQUIRED" },
-        { status: 402 },
-      );
+      return NextResponse.json({ ok: false, error: "PAYMENT_REQUIRED" }, { status: 402 });
     }
 
     await assertWithinMonthlyLimit(account.id);
@@ -106,7 +100,7 @@ export async function POST(req: Request) {
           requestId: request.id,
           title:
             output.type === "graphic"
-              ? output.headline_options[0] ?? null
+              ? (output.headline_options[0] ?? null)
               : output.type === "video"
                 ? output.hook
                 : null,

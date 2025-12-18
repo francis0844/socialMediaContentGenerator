@@ -38,4 +38,3 @@ export function getServerEnv(): ServerEnv {
   }
   return parsed.data;
 }
-

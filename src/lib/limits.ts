@@ -30,4 +30,3 @@ export async function assertWithinMonthlyLimit(accountId: string) {
     throw new Error("MONTHLY_LIMIT_REACHED");
   }
 }
-

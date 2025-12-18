@@ -17,6 +17,7 @@ cp .env.example .env.local
 ```
 
 Fill in `.env.local` with:
+
 - Firebase web config (`NEXT_PUBLIC_FIREBASE_*`)
 - Firebase Admin service account (`FIREBASE_ADMIN_*`)
 - Supabase Postgres (`DATABASE_URL`)

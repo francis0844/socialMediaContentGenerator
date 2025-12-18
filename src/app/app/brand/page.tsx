@@ -242,7 +242,7 @@ export default function BrandProfilePage() {
             </label>
           </div>
           {profile.logoUrl ? (
-            <div className="mt-3 break-all text-sm text-white/70">
+            <div className="mt-3 text-sm break-all text-white/70">
               <span className="text-white">Current:</span> {profile.logoUrl}
             </div>
           ) : (
@@ -256,7 +256,9 @@ export default function BrandProfilePage() {
           <div className="mb-2 text-white/70">Target audience</div>
           <input
             value={profile.targetAudience ?? ""}
-            onChange={(e) => setProfile((p) => ({ ...p, targetAudience: e.target.value }))}
+            onChange={(e) =>
+              setProfile((p) => ({ ...p, targetAudience: e.target.value }))
+            }
             className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-white/30"
             placeholder="Demographics + psychographics"
           />

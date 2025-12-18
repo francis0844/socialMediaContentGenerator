@@ -12,10 +12,7 @@ const bodySchema = z.object({
   reason: z.string().min(2).max(500),
 });
 
-export async function POST(
-  req: NextRequest,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const authed = await requireAuthedUser();
     const { account } = await getOrCreateTenantForUser(authed);
@@ -24,10 +21,7 @@ export async function POST(
     if (rate) {
       const rl = await rate.limit(`fb:${authed.firebaseUid}`);
       if (!rl.success) {
-        return NextResponse.json(
-          { ok: false, error: "RATE_LIMITED" },
-          { status: 429 },
-        );
+        return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
       }
     }
 

@@ -61,7 +61,7 @@ export async function PUT(req: Request) {
     const parsed = brandProfileSchema.parse(body);
 
     const colorsJson =
-      parsed.colors === null ? Prisma.JsonNull : parsed.colors ?? undefined;
+      parsed.colors === null ? Prisma.JsonNull : (parsed.colors ?? undefined);
 
     const profile = await prisma.brandProfile.upsert({
       where: { accountId: account.id },

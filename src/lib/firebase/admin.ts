@@ -23,4 +23,3 @@ export function getFirebaseAdminApp() {
 export function getFirebaseAdminAuth() {
   return getAuth(getFirebaseAdminApp());
 }
-

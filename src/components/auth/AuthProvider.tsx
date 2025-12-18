@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  User as FirebaseUser,
-  onIdTokenChanged,
-  signOut,
-} from "firebase/auth";
-import React, {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { User as FirebaseUser, onIdTokenChanged, signOut } from "firebase/auth";
+import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 
 import { getFirebaseAuth } from "@/lib/firebase/client";
 

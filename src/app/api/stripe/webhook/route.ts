@@ -11,20 +11,13 @@ export async function POST(req: Request) {
 
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
-    return NextResponse.json(
-      { ok: false, error: "MISSING_SIGNATURE" },
-      { status: 400 },
-    );
+    return NextResponse.json({ ok: false, error: "MISSING_SIGNATURE" }, { status: 400 });
   }
 
   const payload = await req.text();
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      env.STRIPE_WEBHOOK_SECRET,
-    );
+    event = stripe.webhooks.constructEvent(payload, signature, env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     const message = err instanceof Error ? err.message : "INVALID_SIGNATURE";
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
@@ -38,8 +31,7 @@ export async function POST(req: Request) {
           session.client_reference_id ?? session.metadata?.accountId ?? null;
         const subscriptionId =
           typeof session.subscription === "string" ? session.subscription : null;
-        const customerId =
-          typeof session.customer === "string" ? session.customer : null;
+        const customerId = typeof session.customer === "string" ? session.customer : null;
 
         if (accountId && subscriptionId && customerId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
@@ -61,14 +53,12 @@ export async function POST(req: Request) {
         const sub = event.data.object as Stripe.Subscription;
         const accountId =
           sub.metadata?.accountId ??
-          (
-            await prisma.account
-              .findFirst({
-                where: { billingSubscriptionId: sub.id },
-                select: { id: true },
-              })
-              .then((a) => a?.id ?? null)
-          );
+          (await prisma.account
+            .findFirst({
+              where: { billingSubscriptionId: sub.id },
+              select: { id: true },
+            })
+            .then((a) => a?.id ?? null));
 
         if (accountId) {
           await prisma.account.update({
@@ -93,4 +83,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
-

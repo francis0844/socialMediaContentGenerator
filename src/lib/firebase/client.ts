@@ -21,4 +21,3 @@ export function getFirebaseClientApp() {
 export function getFirebaseAuth() {
   return getAuth(getFirebaseClientApp());
 }
-

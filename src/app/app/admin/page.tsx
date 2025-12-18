@@ -57,9 +57,7 @@ export default function AdminPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold tracking-tight">Admin</h1>
-      <p className="mt-1 text-sm text-white/70">
-        Accounts overview (first 100).
-      </p>
+      <p className="mt-1 text-sm text-white/70">Accounts overview (first 100).</p>
 
       {error ? (
         <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">

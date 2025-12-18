@@ -32,9 +32,7 @@ export async function GET() {
     const trialDaysLeft = account.trialEndsAt
       ? Math.max(
           0,
-          Math.ceil(
-            (account.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
-          ),
+          Math.ceil((account.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
         )
       : null;
 

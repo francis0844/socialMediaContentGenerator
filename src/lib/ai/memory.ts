@@ -46,4 +46,3 @@ export async function updateMemorySummary(params: {
 
   return (completion.choices[0]?.message?.content ?? "").trim();
 }
-

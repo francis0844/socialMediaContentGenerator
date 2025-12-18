@@ -162,7 +162,7 @@ export default function LibraryStatusPage() {
               </div>
 
               {i.caption ? (
-                <pre className="mt-4 whitespace-pre-wrap text-sm text-white/80">
+                <pre className="mt-4 text-sm whitespace-pre-wrap text-white/80">
                   {i.caption}
                 </pre>
               ) : null}

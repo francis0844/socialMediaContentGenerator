@@ -72,7 +72,9 @@ function buildPrompt(input: GenerationInput) {
     `Main message/key idea: ${direction.mainMessage}`,
     direction.tone ? `Tone: ${direction.tone}` : null,
     direction.captionLength ? `Caption length: ${direction.captionLength}` : null,
-    direction.keywordsInclude ? `Keywords to include: ${direction.keywordsInclude}` : null,
+    direction.keywordsInclude
+      ? `Keywords to include: ${direction.keywordsInclude}`
+      : null,
     direction.keywordsAvoid ? `Words/topics to avoid: ${direction.keywordsAvoid}` : null,
     direction.cta ? `Call-to-action preference: ${direction.cta}` : null,
     direction.hashtags
@@ -130,4 +132,3 @@ export async function generateAIOutput(input: GenerationInput): Promise<AIOutput
 }
 
 export const generationDirectionSchema = directionSchema;
-

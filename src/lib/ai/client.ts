@@ -8,4 +8,3 @@ export function getOpenAIClient() {
   const env = getServerEnv();
   return new OpenAI({ apiKey: env.OPENAI_API_KEY });
 }
-

@@ -27,4 +27,3 @@ export async function requireAuthedUser(): Promise<AuthedUser> {
 
   return { firebaseUid: decoded.uid, email };
 }
-

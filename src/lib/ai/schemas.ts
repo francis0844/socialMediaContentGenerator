@@ -2,12 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-export const socialPlatformSchema = z.enum([
-  "facebook",
-  "instagram",
-  "pinterest",
-  "x",
-]);
+export const socialPlatformSchema = z.enum(["facebook", "instagram", "pinterest", "x"]);
 
 export const contentTypeSchema = z.enum(["graphic", "story", "text", "video"]);
 
@@ -65,4 +60,3 @@ export const aiOutputSchema = z.discriminatedUnion("type", [
 ]);
 
 export type AIOutput = z.infer<typeof aiOutputSchema>;
-

@@ -60,29 +60,44 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
           <div className="text-sm text-white/70">This month</div>
           <div className="mt-2 text-2xl font-semibold">
-            {loading ? "…" : `${data?.monthGenerations ?? 0} / ${data?.monthLimit ?? 1000}`}
+            {loading
+              ? "…"
+              : `${data?.monthGenerations ?? 0} / ${data?.monthLimit ?? 1000}`}
           </div>
           <div className="mt-1 text-sm text-white/60">Generations used</div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
           <div className="text-sm text-white/70">Libraries</div>
           <div className="mt-2 text-sm text-white/70">
-            Generated: <span className="text-white">{loading ? "…" : data?.counts?.generated ?? 0}</span>
+            Generated:{" "}
+            <span className="text-white">
+              {loading ? "…" : (data?.counts?.generated ?? 0)}
+            </span>
             <br />
-            Accepted: <span className="text-white">{loading ? "…" : data?.counts?.accepted ?? 0}</span>
+            Accepted:{" "}
+            <span className="text-white">
+              {loading ? "…" : (data?.counts?.accepted ?? 0)}
+            </span>
             <br />
-            Rejected: <span className="text-white">{loading ? "…" : data?.counts?.rejected ?? 0}</span>
+            Rejected:{" "}
+            <span className="text-white">
+              {loading ? "…" : (data?.counts?.rejected ?? 0)}
+            </span>
           </div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
           <div className="text-sm text-white/70">Access</div>
           <div className="mt-2 text-sm text-white/70">
             Status:{" "}
-            <span className="text-white">{loading ? "…" : data?.billingStatus ?? "trialing"}</span>
+            <span className="text-white">
+              {loading ? "…" : (data?.billingStatus ?? "trialing")}
+            </span>
             <br />
             Trial:{" "}
             <span className="text-white">
-              {daysLeft === null ? "—" : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`}
+              {daysLeft === null
+                ? "—"
+                : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`}
             </span>
           </div>
           <div className="mt-3">

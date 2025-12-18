@@ -55,4 +55,3 @@ export async function getOrCreateTenantForUser(params: {
 
   return { user, membership: createdMembership, account };
 }
-

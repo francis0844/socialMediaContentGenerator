@@ -11,9 +11,7 @@ export function Landing() {
     <div className="min-h-dvh bg-black text-white">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <header className="flex items-center justify-between">
-          <div className="text-sm tracking-[0.3em] uppercase text-white/70">
-            Lexus
-          </div>
+          <div className="text-sm tracking-[0.3em] text-white/70 uppercase">Lexus</div>
           <div className="flex items-center gap-3">
             {loading ? null : user ? (
               <Link
@@ -35,13 +33,13 @@ export function Landing() {
 
         <main className="mt-20 grid gap-10 md:grid-cols-2 md:items-center">
           <div>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+            <h1 className="text-4xl leading-tight font-semibold tracking-tight md:text-5xl">
               Social Media Magic Generator
             </h1>
             <p className="mt-5 max-w-xl text-white/70">
-              Generate platform-ready posts for your business in minutes. Accept
-              or reject outputs with a reason — the studio learns per account so
-              content gets sharper over time.
+              Generate platform-ready posts for your business in minutes. Accept or reject
+              outputs with a reason — the studio learns per account so content gets
+              sharper over time.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -97,4 +95,3 @@ export function Landing() {
     </div>
   );
 }
-

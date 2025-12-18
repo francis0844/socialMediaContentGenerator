@@ -11,10 +11,7 @@ export async function POST(req: Request) {
     const stripe = getStripe();
 
     if (!account.billingCustomerId) {
-      return NextResponse.json(
-        { ok: false, error: "NO_CUSTOMER" },
-        { status: 400 },
-      );
+      return NextResponse.json({ ok: false, error: "NO_CUSTOMER" }, { status: 400 });
     }
 
     const origin = req.headers.get("origin") ?? "http://localhost:3000";
@@ -30,4 +27,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
-
