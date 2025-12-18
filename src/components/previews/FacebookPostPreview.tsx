@@ -6,12 +6,6 @@ import { MediaPlaceholder } from "@/components/previews/MediaPlaceholder";
 import { formatCaptionWithHashtags, toHandle, type BrandPreviewProfile, type PreviewDevice, type PreviewOutput, type PreviewTheme } from "@/components/previews/types";
 import { cn } from "@/lib/utils";
 
-function truncate(text: string, max = 240) {
-  const t = text.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max).trim()}…`;
-}
-
 export function FacebookPostPreview({
   output,
   brand,
@@ -29,7 +23,10 @@ export function FacebookPostPreview({
 
   const hasMedia = output.type === "graphic" || output.type === "video" || output.type === "story";
   const overlay = output.type === "graphic" ? output.visual_concept : null;
-  const caption = truncate(formatCaptionWithHashtags(output), device === "mobile" ? 200 : 260);
+  const fullCaption = formatCaptionWithHashtags(output);
+  const max = device === "mobile" ? 200 : 260;
+  const showSeeMore = fullCaption.length > max;
+  const displayCaption = showSeeMore ? `${fullCaption.slice(0, max).trim()}…` : fullCaption;
 
   return (
     <div
@@ -65,12 +62,28 @@ export function FacebookPostPreview({
         </div>
 
         <div className={cn("mt-3 text-sm leading-relaxed", theme === "light" ? "text-black/80" : "text-white/85")}>
-          {caption}
-          {formatCaptionWithHashtags(output).length > caption.length ? (
-            <span className={cn("ml-2 font-medium", theme === "light" ? "text-blue-600" : "text-blue-400")}>
-              See more
-            </span>
-          ) : null}
+          {showSeeMore ? (
+            <>
+              <span>{displayCaption} </span>
+              <button
+                type="button"
+                className={cn(
+                  "font-semibold underline-offset-2",
+                  theme === "light" ? "text-blue-600 hover:text-blue-700" : "text-blue-300 hover:text-blue-200",
+                )}
+                onClick={() => {
+                  const el = document.getElementById(`fb-full-${output.platform}-${output.type}`);
+                  if (el) {
+                    el.textContent = fullCaption;
+                  }
+                }}
+              >
+                See more
+              </button>
+            </>
+          ) : (
+            <span id={`fb-full-${output.platform}-${output.type}`}>{fullCaption}</span>
+          )}
         </div>
       </div>
 
@@ -123,4 +136,3 @@ export function FacebookPostPreview({
     </div>
   );
 }
-

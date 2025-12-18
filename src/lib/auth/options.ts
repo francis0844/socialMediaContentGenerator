@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
   secret:
     env.NEXTAUTH_SECRET ??
     (process.env.NODE_ENV === "development" ? "dev-secret" : undefined),
-  pages: { signIn: "/login" },
+  pages: { signIn: "/login", error: "/auth/error" },
   session: { strategy: "jwt" },
   providers: [
     ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET

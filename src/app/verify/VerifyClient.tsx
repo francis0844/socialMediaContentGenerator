@@ -18,6 +18,8 @@ export function VerifyClient() {
     "idle" | "verifying" | "verified" | "error"
   >("idle");
   const [error, setError] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!tokenFromUrl) return;
@@ -57,6 +59,30 @@ export function VerifyClient() {
     } catch (e) {
       setStatus("error");
       setError(e instanceof Error ? e.message : "Verification failed");
+    }
+  }
+
+  async function resendVerification() {
+    if (!email) {
+      setResendStatus("error");
+      setResendMessage("Email not provided.");
+      return;
+    }
+    setResendStatus("sending");
+    setResendMessage(null);
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "RESEND_FAILED");
+      setResendStatus("sent");
+      setResendMessage("Verification link generated. Check server logs (dev) or your inbox.");
+    } catch (e) {
+      setResendStatus("error");
+      setResendMessage(e instanceof Error ? e.message : "Resend failed");
     }
   }
 
@@ -100,6 +126,24 @@ export function VerifyClient() {
           >
             {status === "verifying" ? "Verifying…" : "Verify"}
           </Button>
+
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="font-medium text-foreground">Need a new link?</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={resendVerification}
+                disabled={resendStatus === "sending"}
+              >
+                {resendStatus === "sending" ? "Sending…" : "Resend verification"}
+              </Button>
+              {resendMessage ? (
+                <span className="text-xs text-foreground">{resendMessage}</span>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         {status === "verified" ? (
@@ -118,4 +162,3 @@ export function VerifyClient() {
     </div>
   );
 }
-

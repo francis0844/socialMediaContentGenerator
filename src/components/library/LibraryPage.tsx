@@ -164,7 +164,11 @@ export function LibraryPage({ status }: { status: Status }) {
               : "Browse your library. You can undo back to Generated."}
           </p>
         </div>
-        <Button variant="outline" onClick={load}>
+        <Button
+          variant="outline"
+          onClick={load}
+          className="border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
+        >
           Refresh
         </Button>
       </div>
@@ -249,14 +253,14 @@ export function LibraryPage({ status }: { status: Status }) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                        className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
                         onClick={() => openDecision(i, "reject")}
                       >
                         Reject
                       </Button>
                     </>
                   ) : (
-                    <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
+                <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
                       Move back to Generated
                     </Button>
                   )}
