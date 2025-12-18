@@ -12,6 +12,7 @@ import {
 } from "@/lib/billing/quota";
 import { getBrandProfileCompleteness } from "@/lib/brand/profile";
 import { prisma } from "@/lib/db";
+import { maybeFetchVoiceDocText } from "@/lib/brand/voiceDoc";
 import { getRatelimit } from "@/lib/ratelimit";
 
 const requestSchema = z.object({
@@ -77,6 +78,9 @@ export async function POST(req: Request) {
       where: { accountId: account.id },
     });
 
+    const voiceDocText =
+      brand.voiceMode === "uploaded" ? await maybeFetchVoiceDocText(brand.voiceDocUrl) : null;
+
     const output = await generateAIOutput({
       contentType: parsed.contentType,
       platform: parsed.platform,
@@ -92,7 +96,7 @@ export async function POST(req: Request) {
           brand.voiceMode === "preset"
             ? `preset:${brand.voicePreset ?? ""}`
             : "uploaded",
-        voiceDocText: null,
+        voiceDocText,
       },
       memorySummary: memory?.memorySummary ?? "",
     });

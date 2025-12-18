@@ -11,19 +11,30 @@ import {
 } from "@/lib/ai/schemas";
 import { getServerEnv } from "@/lib/env/server";
 
+export const tonePresetSchema = z.enum([
+  "professional",
+  "friendly",
+  "bold",
+  "playful",
+  "inspirational",
+  "brand_voice",
+]);
+
+export const captionLengthSchema = z.enum(["short", "medium", "long"]);
+
+const hashtagsSchema = z.object({
+  mode: z.enum(["optional", "required"]).default("required"),
+  count: z.number().int().min(1).max(30).default(8),
+});
+
 const directionSchema = z.object({
   mainMessage: z.string().min(1),
-  tone: z.string().optional(),
-  captionLength: z.string().optional(),
-  hashtags: z
-    .object({
-      enabled: z.boolean().default(true),
-      count: z.number().int().min(0).max(30).default(8),
-    })
-    .optional(),
-  keywordsInclude: z.string().optional(),
-  keywordsAvoid: z.string().optional(),
-  cta: z.string().optional(),
+  tone: tonePresetSchema.default("brand_voice"),
+  captionLength: captionLengthSchema.default("medium"),
+  hashtags: hashtagsSchema.default({ mode: "required", count: 8 }),
+  keywordsInclude: z.string().optional().nullable(),
+  keywordsAvoid: z.string().optional().nullable(),
+  cta: z.string().optional().nullable(),
 });
 
 export type GenerationInput = {
@@ -51,6 +62,7 @@ function buildPrompt(input: GenerationInput) {
     "Return ONLY valid JSON. Do not wrap in markdown.",
     "Follow the required schema exactly for the selected content type.",
     "No sensitive personal data. Keep outputs brand-safe and platform-appropriate.",
+    "Hard safety rules: no explicit sexual content, no NSFW content, no hate or harassment, no content involving minors in a sexual context.",
   ].join("\n");
 
   const brandBlock = [
@@ -70,16 +82,14 @@ function buildPrompt(input: GenerationInput) {
     `Platform: ${platform}`,
     `Content type: ${contentType}`,
     `Main message/key idea: ${direction.mainMessage}`,
-    direction.tone ? `Tone: ${direction.tone}` : null,
-    direction.captionLength ? `Caption length: ${direction.captionLength}` : null,
+    `Tone: ${direction.tone === "brand_voice" ? "Use the brand voice" : direction.tone}`,
+    `Caption length: ${direction.captionLength}`,
     direction.keywordsInclude
       ? `Keywords to include: ${direction.keywordsInclude}`
       : null,
     direction.keywordsAvoid ? `Words/topics to avoid: ${direction.keywordsAvoid}` : null,
     direction.cta ? `Call-to-action preference: ${direction.cta}` : null,
-    direction.hashtags
-      ? `Hashtags: ${direction.hashtags.enabled ? `enabled (aim for ${direction.hashtags.count})` : "disabled"}`
-      : null,
+    `Hashtags: required on all platforms. Mode: ${direction.hashtags.mode}. Aim for ${direction.hashtags.count}.`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -116,19 +126,42 @@ export async function generateAIOutput(input: GenerationInput): Promise<AIOutput
   const client = getOpenAIClient();
   const { system, user } = buildPrompt(input);
 
-  const completion = await client.chat.completions.create({
-    model: env.OPENAI_MODEL,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    response_format: { type: "json_object" },
-    temperature: 0.7,
-  });
+  const maxAttempts = 3;
+  let lastError: unknown = null;
 
-  const text = completion.choices[0]?.message?.content ?? "{}";
-  const parsedJson = JSON.parse(text);
-  return aiOutputSchema.parse(parsedJson);
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const completion = await client.chat.completions.create({
+        model: env.OPENAI_MODEL,
+        messages: [
+          { role: "system", content: system },
+          {
+            role: "user",
+            content:
+              attempt === 1
+                ? user
+                : `${user}\n\nIMPORTANT: Your last response did not match the required schema. Fix it and return ONLY valid JSON.`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        temperature: attempt === 1 ? 0.7 : 0.4,
+      });
+
+      const text = completion.choices[0]?.message?.content ?? "{}";
+      const parsedJson = JSON.parse(text);
+      const output = aiOutputSchema.parse(parsedJson);
+
+      if (input.direction.hashtags.mode === "required" && output.hashtags.length === 0) {
+        throw new Error("HASHTAGS_REQUIRED");
+      }
+
+      return output;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("AI_SCHEMA_VALIDATION_FAILED");
 }
 
 export const generationDirectionSchema = directionSchema;
