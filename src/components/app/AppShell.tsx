@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 
 function NavLink({ href, label }: { href: string; label: string }) {
@@ -29,10 +29,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   const loading = status === "loading";
   const user = data?.user ?? null;
   const accountId = data?.accountId ?? null;
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    (async () => {
+      try {
+        const res = await fetch("/api/bootstrap", { cache: "no-store" });
+        const raw: unknown = await res.json();
+        const json = raw as { ok?: boolean; user?: { isAdmin?: boolean } };
+        setIsAdmin(Boolean(json?.user?.isAdmin));
+      } catch {
+        setIsAdmin(false);
+      }
+    })();
+  }, [status]);
 
   if (loading) {
     return (
@@ -79,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <NavLink href="/app/library/rejected" label="Rejected" />
               <NavLink href="/app/brand" label="Brand Profile" />
               <NavLink href="/app/billing" label="Billing" />
+              {isAdmin ? <NavLink href="/app/admin" label="Admin" /> : null}
             </div>
           </nav>
 

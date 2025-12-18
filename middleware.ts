@@ -21,12 +21,7 @@ export async function middleware(req: NextRequest) {
   const needsAuth = pathname.startsWith("/app") || (isApiRequest(pathname) && !isPublicApi(pathname));
   if (!needsAuth) return NextResponse.next();
 
-  const token = await getToken({
-    req,
-    secret:
-      process.env.NEXTAUTH_SECRET ??
-      (process.env.NODE_ENV === "development" ? "dev-secret" : undefined),
-  });
+  const token = await getToken({ req });
 
   if (!token) {
     if (isApiRequest(pathname)) {
@@ -47,4 +42,3 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/app/:path*", "/api/:path*"],
 };
-

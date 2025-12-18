@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "admin:grant": "node scripts/grant-admin.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.1",
