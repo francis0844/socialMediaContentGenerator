@@ -258,8 +258,8 @@ export function LibraryPage({ status }: { status: Status }) {
       </div>
 
       {previewOpen && selected ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 sm:px-6">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-sm text-white/70">Preview</div>
