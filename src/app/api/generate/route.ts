@@ -1,0 +1,146 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+import { generateAIOutput, generationDirectionSchema } from "@/lib/ai/generate";
+import { contentTypeSchema, socialPlatformSchema } from "@/lib/ai/schemas";
+import { requireAuthedUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { hasPaidAccess, assertWithinMonthlyLimit } from "@/lib/limits";
+import { getRatelimit } from "@/lib/ratelimit";
+import { getOrCreateTenantForUser } from "@/lib/tenant";
+
+const requestSchema = z.object({
+  contentType: contentTypeSchema,
+  platform: socialPlatformSchema,
+  direction: generationDirectionSchema,
+});
+
+export async function POST(req: Request) {
+  try {
+    const authed = await requireAuthedUser();
+    const { account } = await getOrCreateTenantForUser(authed);
+
+    const rate = getRatelimit();
+    if (rate) {
+      const rl = await rate.limit(`gen:${authed.firebaseUid}`);
+      if (!rl.success) {
+        return NextResponse.json(
+          { ok: false, error: "RATE_LIMITED" },
+          { status: 429 },
+        );
+      }
+    }
+
+    if (
+      !hasPaidAccess({
+        billingStatus: account.billingStatus,
+        trialEndsAt: account.trialEndsAt,
+      })
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "PAYMENT_REQUIRED" },
+        { status: 402 },
+      );
+    }
+
+    await assertWithinMonthlyLimit(account.id);
+
+    const body = await req.json();
+    const parsed = requestSchema.parse(body);
+
+    const brand = await prisma.brandProfile.findUnique({
+      where: { accountId: account.id },
+    });
+    if (!brand) {
+      return NextResponse.json(
+        { ok: false, error: "BRAND_PROFILE_REQUIRED" },
+        { status: 400 },
+      );
+    }
+
+    const memory = await prisma.aiMemory.findUnique({
+      where: { accountId: account.id },
+    });
+
+    const output = await generateAIOutput({
+      contentType: parsed.contentType,
+      platform: parsed.platform,
+      direction: parsed.direction,
+      brand: {
+        brandName: brand.brandName,
+        about: brand.about,
+        niche: brand.niche,
+        targetAudience: brand.targetAudience,
+        goals: brand.goals,
+        colors: brand.colorsJson,
+        voiceMode: brand.voiceMode,
+        voiceDocText: null,
+      },
+      memorySummary: memory?.memorySummary ?? "",
+    });
+
+    const { request, content } = await prisma.$transaction(async (tx) => {
+      const request = await tx.generationRequest.create({
+        data: {
+          accountId: account.id,
+          contentType: parsed.contentType,
+          platform: parsed.platform,
+          direction: parsed.direction,
+        },
+      });
+
+      const caption =
+        output.type === "text"
+          ? output.caption
+          : output.type === "graphic"
+            ? output.caption
+            : output.type === "story"
+              ? output.caption
+              : output.caption;
+
+      const hashtags = output.hashtags ?? [];
+
+      const content = await tx.generatedContent.create({
+        data: {
+          accountId: account.id,
+          requestId: request.id,
+          title:
+            output.type === "graphic"
+              ? output.headline_options[0] ?? null
+              : output.type === "video"
+                ? output.hook
+                : null,
+          output,
+          caption,
+          hashtags,
+          status: "generated",
+        },
+      });
+
+      return { request, content };
+    });
+
+    return NextResponse.json({
+      ok: true,
+      requestId: request.id,
+      content: {
+        id: content.id,
+        status: content.status,
+        createdAt: content.createdAt.toISOString(),
+        title: content.title,
+        output: content.output,
+        caption: content.caption,
+        hashtags: content.hashtags,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "UNKNOWN";
+    const status =
+      message === "UNAUTHENTICATED"
+        ? 401
+        : message === "MONTHLY_LIMIT_REACHED"
+          ? 429
+          : 400;
+    return NextResponse.json({ ok: false, error: message }, { status });
+  }
+}

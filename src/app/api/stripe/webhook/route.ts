@@ -1,0 +1,96 @@
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+
+import { prisma } from "@/lib/db";
+import { getServerEnv } from "@/lib/env/server";
+import { getStripe, mapStripeSubscriptionStatus } from "@/lib/stripe";
+
+export async function POST(req: Request) {
+  const env = getServerEnv();
+  const stripe = getStripe();
+
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) {
+    return NextResponse.json(
+      { ok: false, error: "MISSING_SIGNATURE" },
+      { status: 400 },
+    );
+  }
+
+  const payload = await req.text();
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      env.STRIPE_WEBHOOK_SECRET,
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "INVALID_SIGNATURE";
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+  }
+
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const accountId =
+          session.client_reference_id ?? session.metadata?.accountId ?? null;
+        const subscriptionId =
+          typeof session.subscription === "string" ? session.subscription : null;
+        const customerId =
+          typeof session.customer === "string" ? session.customer : null;
+
+        if (accountId && subscriptionId && customerId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          await prisma.account.update({
+            where: { id: accountId },
+            data: {
+              billingCustomerId: customerId,
+              billingSubscriptionId: subscriptionId,
+              billingStatus: mapStripeSubscriptionStatus(sub.status),
+            },
+          });
+        }
+        break;
+      }
+
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        const accountId =
+          sub.metadata?.accountId ??
+          (
+            await prisma.account
+              .findFirst({
+                where: { billingSubscriptionId: sub.id },
+                select: { id: true },
+              })
+              .then((a) => a?.id ?? null)
+          );
+
+        if (accountId) {
+          await prisma.account.update({
+            where: { id: accountId },
+            data: {
+              billingCustomerId:
+                typeof sub.customer === "string" ? sub.customer : undefined,
+              billingSubscriptionId: sub.id,
+              billingStatus: mapStripeSubscriptionStatus(sub.status),
+            },
+          });
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "WEBHOOK_FAILED";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}
+

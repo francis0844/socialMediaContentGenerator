@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  owner
+  admin
+}
+
+enum AccountPlan {
+  full_access
+}
+
+enum BillingStatus {
+  trialing
+  active
+  past_due
+  canceled
+  incomplete
+  unpaid
+}
+
+enum ContentType {
+  graphic
+  story
+  text
+  video
+}
+
+enum SocialPlatform {
+  facebook
+  instagram
+  pinterest
+  x
+}
+
+enum ContentStatus {
+  generated
+  accepted
+  rejected
+}
+
+enum FeedbackDecision {
+  accept
+  reject
+}
+
+model User {
+  id          String       @id @default(cuid())
+  firebaseUid String       @unique
+  email       String       @unique
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+}
+
+model Account {
+  id                    String        @id @default(cuid())
+  name                  String
+  plan                  AccountPlan   @default(full_access)
+  billingCustomerId     String?
+  billingSubscriptionId String?
+  billingStatus         BillingStatus @default(trialing)
+  trialEndsAt           DateTime?
+  createdAt             DateTime      @default(now())
+
+  memberships        Membership[]
+  brandProfile       BrandProfile?
+  generationRequests GenerationRequest[]
+  generatedContent   GeneratedContent[]
+  feedback           Feedback[]
+  aiMemory           AiMemory?
+
+  @@index([billingCustomerId])
+  @@index([billingSubscriptionId])
+}
+
+model Membership {
+  userId    String
+  accountId String
+  role      MembershipRole @default(owner)
+  createdAt DateTime       @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@id([userId, accountId])
+  @@index([accountId])
+}
+
+model BrandProfile {
+  id             String   @id @default(cuid())
+  accountId      String   @unique
+  brandName      String
+  logoUrl        String?
+  about          String
+  niche          String
+  colorsJson     Json?
+  targetAudience String?
+  goals          String?
+  voiceMode      String?
+  voiceDocUrl    String?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+model GenerationRequest {
+  id          String         @id @default(cuid())
+  accountId   String
+  contentType ContentType
+  platform    SocialPlatform
+  direction   Json
+  createdAt   DateTime       @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  outputs GeneratedContent[]
+
+  @@index([accountId, createdAt])
+  @@index([accountId, contentType, platform, createdAt])
+}
+
+model GeneratedContent {
+  id        String        @id @default(cuid())
+  accountId String
+  requestId String
+  title     String?
+  output    Json
+  caption   String?
+  hashtags  Json?
+  status    ContentStatus @default(generated)
+  createdAt DateTime      @default(now())
+
+  account  Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  request  GenerationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  feedback Feedback[]
+
+  @@index([accountId, status, createdAt])
+  @@index([requestId])
+}
+
+model Feedback {
+  id             String           @id @default(cuid())
+  contentId      String
+  accountId      String
+  decision       FeedbackDecision
+  reason         String
+  aiResponse     String
+  memorySnapshot String?
+  createdAt      DateTime         @default(now())
+
+  account Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  content GeneratedContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([contentId])
+}
+
+model AiMemory {
+  id            String   @id @default(cuid())
+  accountId     String   @unique
+  threadId      String?
+  memorySummary String   @default("")
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
