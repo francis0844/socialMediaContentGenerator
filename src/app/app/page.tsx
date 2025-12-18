@@ -8,8 +8,20 @@ import { useSession } from "next-auth/react";
 type UsageResponse = {
   ok: boolean;
   counts?: { generated: number; accepted: number; rejected: number };
-  monthGenerations?: number;
-  monthLimit?: number;
+  quota?:
+    | {
+        scope: "trial_daily";
+        used: number;
+        limit: number;
+        resetsAt: string;
+      }
+    | {
+        scope: "billing_cycle";
+        used: number;
+        limit: number;
+        periodStart: string | null;
+        periodEnd: string | null;
+      };
   billingStatus?: string;
   trialEndsAt?: string | null;
   trialDaysLeft?: number | null;
@@ -53,11 +65,15 @@ export default function DashboardPage() {
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">This month</div>
+          <div className="text-sm text-white/70">
+            {usageData?.quota?.scope === "trial_daily"
+              ? "Trial (daily quota)"
+              : "Billing cycle"}
+          </div>
           <div className="mt-2 text-2xl font-semibold">
             {loading
               ? "…"
-              : `${usageData?.monthGenerations ?? 0} / ${usageData?.monthLimit ?? 1000}`}
+              : `${usageData?.quota?.used ?? 0} / ${usageData?.quota?.limit ?? 0}`}
           </div>
           <div className="mt-1 text-sm text-white/60">Generations used</div>
         </div>

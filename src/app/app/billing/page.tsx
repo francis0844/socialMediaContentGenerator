@@ -1,12 +1,176 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+type UsageResponse = {
+  ok: boolean;
+  billingStatus?: string;
+  trialEndsAt?: string | null;
+  trialDaysLeft?: number | null;
+  quota?:
+    | { scope: "trial_daily"; used: number; limit: number; resetsAt: string }
+    | {
+        scope: "billing_cycle";
+        used: number;
+        limit: number;
+        periodStart: string | null;
+        periodEnd: string | null;
+      };
+  error?: string;
+};
+
 export default function BillingPage() {
+  const [loading, setLoading] = useState(true);
+  const [usage, setUsage] = useState<UsageResponse | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const trialActive = useMemo(() => {
+    if (!usage?.trialEndsAt) return false;
+    return new Date(usage.trialEndsAt).getTime() > Date.now();
+  }, [usage?.trialEndsAt]);
+
+  async function refresh() {
+    setLoading(true);
+    const res = await fetch("/api/usage", { cache: "no-store" });
+    const json = (await res.json()) as UsageResponse;
+    setUsage(json);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  async function startCheckout() {
+    setMessage(null);
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; url?: string; error?: string };
+      if (!res.ok || !data.ok || !data.url) {
+        throw new Error(data.error ?? "CHECKOUT_FAILED");
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Checkout failed");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function openPortal() {
+    setMessage(null);
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; url?: string; error?: string };
+      if (!res.ok || !data.ok || !data.url) {
+        throw new Error(data.error ?? "PORTAL_FAILED");
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Portal failed");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  const billingStatus = usage?.billingStatus ?? "trialing";
+  const isActive = billingStatus === "active";
+
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">Billing</h1>
-      <p className="mt-1 text-sm text-white/70">
-        Checkout and subscription management will live here.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Billing</h1>
+          <p className="mt-1 text-sm text-white/70">
+            Full Access: $120/month • 1000 generations per billing cycle
+          </p>
+        </div>
+        <Button variant="outline" onClick={refresh} disabled={loading}>
+          Refresh
+        </Button>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+          <div className="text-sm text-white/70">Status</div>
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs",
+                isActive
+                  ? "border-green-500/30 bg-green-500/10 text-green-200"
+                  : "border-white/15 bg-white/5 text-white/80",
+              )}
+            >
+              {loading ? "…" : billingStatus}
+            </span>
+            {trialActive ? (
+              <span className="text-xs text-white/60">
+                Trial: {usage?.trialDaysLeft ?? "—"} days left
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-4 text-sm text-white/70">
+            {loading ? (
+              "Loading…"
+            ) : usage?.quota?.scope === "trial_daily" ? (
+              <>
+                Trial daily quota:{" "}
+                <span className="text-white">
+                  {usage.quota.used} / {usage.quota.limit}
+                </span>
+              </>
+            ) : (
+              <>
+                Billing-cycle quota:{" "}
+                <span className="text-white">
+                  {usage?.quota?.used ?? 0} / {usage?.quota?.limit ?? 1000}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+          <div className="text-sm text-white/70">Manage</div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button onClick={startCheckout} disabled={actionLoading}>
+              Subscribe
+            </Button>
+            <Button variant="outline" onClick={openPortal} disabled={actionLoading}>
+              Customer Portal
+            </Button>
+          </div>
+
+          <div className="mt-3 text-xs text-white/60">
+            Trial does not require payment. When trial ends, generation is blocked until
+            you subscribe.
+          </div>
+
+          {message ? (
+            <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {message}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {!loading && !trialActive && !isActive ? (
+        <div className="mt-6 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+          Your trial has ended. Subscribe to continue generating content.
+        </div>
+      ) : null}
     </div>
   );
 }
+

@@ -15,6 +15,13 @@ export async function POST(req: Request) {
     if (!env.STRIPE_PRICE_ID_FULL_ACCESS) throw new Error("STRIPE_NOT_CONFIGURED");
     const stripe = getStripe();
 
+    if (account.billingStatus === "active" && account.billingSubscriptionId) {
+      return NextResponse.json(
+        { ok: false, error: "ALREADY_SUBSCRIBED" },
+        { status: 400 },
+      );
+    }
+
     const origin = req.headers.get("origin") ?? "http://localhost:3000";
 
     const customerId =

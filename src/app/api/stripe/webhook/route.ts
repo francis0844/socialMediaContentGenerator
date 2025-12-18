@@ -38,12 +38,15 @@ export async function POST(req: Request) {
 
         if (accountId && subscriptionId && customerId) {
           const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const item = sub.items.data[0] ?? null;
           await prisma.account.update({
             where: { id: accountId },
             data: {
               billingCustomerId: customerId,
               billingSubscriptionId: subscriptionId,
               billingStatus: mapStripeSubscriptionStatus(sub.status),
+              billingPeriodStart: item ? new Date(item.current_period_start * 1000) : null,
+              billingPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
             },
           });
         }
@@ -64,6 +67,7 @@ export async function POST(req: Request) {
             .then((a) => a?.id ?? null));
 
         if (accountId) {
+          const item = sub.items.data[0] ?? null;
           await prisma.account.update({
             where: { id: accountId },
             data: {
@@ -71,6 +75,8 @@ export async function POST(req: Request) {
                 typeof sub.customer === "string" ? sub.customer : undefined,
               billingSubscriptionId: sub.id,
               billingStatus: mapStripeSubscriptionStatus(sub.status),
+              billingPeriodStart: item ? new Date(item.current_period_start * 1000) : null,
+              billingPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
             },
           });
         }

@@ -4,8 +4,13 @@ import { z } from "zod";
 import { generateAIOutput, generationDirectionSchema } from "@/lib/ai/generate";
 import { contentTypeSchema, socialPlatformSchema } from "@/lib/ai/schemas";
 import { requireVerifiedSession } from "@/lib/auth/session";
+import {
+  assertWithinBillingCycleLimit,
+  assertWithinTrialDailyLimit,
+  hasGenerationAccess,
+  isTrialActive,
+} from "@/lib/billing/quota";
 import { prisma } from "@/lib/db";
-import { hasPaidAccess, assertWithinMonthlyLimit } from "@/lib/limits";
 import { getRatelimit } from "@/lib/ratelimit";
 
 const requestSchema = z.object({
@@ -30,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     if (
-      !hasPaidAccess({
+      !hasGenerationAccess({
         billingStatus: account.billingStatus,
         trialEndsAt: account.trialEndsAt,
       })
@@ -38,7 +43,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "PAYMENT_REQUIRED" }, { status: 402 });
     }
 
-    await assertWithinMonthlyLimit(account.id);
+    if (isTrialActive(account.trialEndsAt)) {
+      await assertWithinTrialDailyLimit(account.id);
+    } else {
+      await assertWithinBillingCycleLimit({
+        accountId: account.id,
+        periodStart: account.billingPeriodStart ?? null,
+      });
+    }
 
     const body = await req.json();
     const parsed = requestSchema.parse(body);
@@ -133,7 +145,7 @@ export async function POST(req: Request) {
     const status =
       message === "UNAUTHENTICATED"
         ? 401
-        : message === "MONTHLY_LIMIT_REACHED"
+        : message === "TRIAL_DAILY_LIMIT_REACHED" || message === "BILLING_CYCLE_LIMIT_REACHED"
           ? 429
           : 400;
     return NextResponse.json({ ok: false, error: message }, { status });
