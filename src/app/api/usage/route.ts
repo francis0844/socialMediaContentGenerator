@@ -71,6 +71,18 @@ export async function GET() {
       }),
     ]);
 
+    const recent = await prisma.generatedContent.findMany({
+      where: { accountId: account.id },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        request: { select: { platform: true, contentType: true } },
+      },
+    });
+
     return NextResponse.json({
       ok: true,
       counts: {
@@ -79,6 +91,13 @@ export async function GET() {
         rejected: rejectedCount,
       },
       platformCounts,
+      recent: recent.map((r) => ({
+        id: r.id,
+        title: r.title,
+        platform: r.request.platform,
+        contentType: r.request.contentType,
+        createdAt: r.createdAt.toISOString(),
+      })),
       quota: trialActive
         ? {
             scope: "trial_daily",

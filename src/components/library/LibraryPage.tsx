@@ -214,46 +214,54 @@ export function LibraryPage({ status }: { status: Status }) {
         </div>
       ) : null}
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           <div className="text-sm text-slate-600">Loading…</div>
         ) : items.length ? (
           items.map((i) => (
-            <div key={i.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <button
-                    onClick={() => openPreview(i)}
-                    className="text-left text-sm font-semibold text-slate-900 underline-offset-4 hover:underline"
-                  >
-                    {i.title ?? `${i.contentType} • ${i.platform}`}
-                  </button>
-                  <div className="mt-1 text-xs text-slate-500">
-                    {new Date(i.createdAt).toLocaleString()} • {i.platform} • {i.contentType}
-                  </div>
+            <div key={i.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex h-32 items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Preview coming soon
+              </div>
+              <div className="p-4 space-y-2">
+                <div className="text-xs text-slate-500">
+                  #{i.platform} • #{i.contentType}
+                </div>
+                <button
+                  onClick={() => openPreview(i)}
+                  className="block text-left text-base font-semibold text-slate-900 underline-offset-4 hover:underline"
+                >
+                  {i.title ?? `${i.contentType} • ${i.platform}`}
+                </button>
+                <div className="text-xs text-slate-500">
+                  {new Date(i.createdAt).toLocaleString()}
+                </div>
+                <div className="text-sm text-slate-600 line-clamp-3">
+                  {i.caption ?? "Quick look at your most recent outputs. Accept or reject to teach the AI."}
                 </div>
 
-                {status === "generated" ? (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => openDecision(i, "accept")}>Accept</Button>
-                    <Button
-                      variant="outline"
-                      className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
-                      onClick={() => openDecision(i, "reject")}
-                    >
-                      Reject
+                <div className="pt-2 flex flex-wrap gap-2">
+                  {status === "generated" ? (
+                    <>
+                      <Button onClick={() => openDecision(i, "accept")} size="sm">
+                        Accept
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                        onClick={() => openDecision(i, "reject")}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
+                      Move back to Generated
                     </Button>
-                  </div>
-                ) : (
-                  <Button variant="outline" onClick={() => openUndo(i)}>
-                    Move back to Generated
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
-
-              {i.caption ? (
-                <pre className="mt-4 whitespace-pre-wrap text-sm text-slate-700">{i.caption}</pre>
-              ) : null}
             </div>
           ))
         ) : (

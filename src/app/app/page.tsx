@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BarChart3, Sparkles, Undo2, Users } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFacebook, faInstagram, faPinterest, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 
 import { useSession } from "next-auth/react";
 
@@ -10,6 +11,7 @@ type UsageResponse = {
   ok: boolean;
   counts?: { generated: number; accepted: number; rejected: number };
   platformCounts?: { facebook: number; instagram: number; pinterest: number; x: number };
+  recent?: Array<{ id: string; title: string | null; platform: string; contentType: string; createdAt: string }>;
   quota?:
     | {
         scope: "trial_daily";
@@ -119,13 +121,13 @@ export default function DashboardPage() {
               >
                 <div className="grid h-12 w-12 place-items-center rounded-full bg-teal-50 text-teal-600">
                   {platform === "facebook" ? (
-                    <Users className="h-5 w-5" />
+                    <FontAwesomeIcon icon={faFacebook} className="h-5 w-5" />
                   ) : platform === "instagram" ? (
-                    <Sparkles className="h-5 w-5" />
+                    <FontAwesomeIcon icon={faInstagram} className="h-5 w-5" />
                   ) : platform === "pinterest" ? (
-                    <Undo2 className="h-5 w-5" />
+                    <FontAwesomeIcon icon={faPinterest} className="h-5 w-5" />
                   ) : (
-                    <BarChart3 className="h-5 w-5" />
+                    <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
                   )}
                 </div>
                 <div className="mt-3 text-base font-semibold text-slate-900">
@@ -147,13 +149,17 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="h-32 bg-slate-200" />
+            {(usageData?.recent ?? [1, 2, 3].map((i) => ({ id: `${i}`, title: `Latest generated idea ${i}`, platform: "facebook", contentType: "text", createdAt: "" }))).slice(0, 3).map((item, idx) => (
+              <div key={item.id ?? idx} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex h-32 items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-slate-400">
+                  Image coming soon
+                </div>
                 <div className="p-4">
-                  <div className="text-xs text-slate-500">#Content • #Preview</div>
+                  <div className="text-xs text-slate-500">
+                    {item.platform ? `#${item.platform}` : "#Content"} • {item.contentType ? `#${item.contentType}` : "#Preview"}
+                  </div>
                   <div className="mt-2 text-base font-semibold text-slate-900">
-                    Latest generated idea {i}
+                    {item.title ?? `Latest generated idea ${idx + 1}`}
                   </div>
                   <div className="mt-1 text-sm text-slate-600">
                     Quick look at your most recent outputs. Accept or reject to teach the AI.

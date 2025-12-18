@@ -18,6 +18,7 @@ export async function GET(req: Request) {
     const typeParam = url.searchParams.get("type");
     const fromParam = url.searchParams.get("from") ?? undefined;
     const toParam = url.searchParams.get("to") ?? undefined;
+    const q = url.searchParams.get("q") ?? undefined;
 
     const platform = platformParam ? socialPlatformSchema.parse(platformParam) : null;
     const contentType = typeParam ? contentTypeSchema.parse(typeParam) : null;
@@ -42,6 +43,14 @@ export async function GET(req: Request) {
                 ...(platform ? { platform } : {}),
                 ...(contentType ? { contentType } : {}),
               },
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { caption: { contains: q, mode: "insensitive" } },
+                { title: { contains: q, mode: "insensitive" } },
+              ],
             }
           : {}),
       },

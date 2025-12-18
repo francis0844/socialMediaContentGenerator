@@ -17,9 +17,13 @@ export function LoginClient() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   async function signInWithCredentials() {
     setError(null);
+    setResendStatus("idle");
+    setResendMessage(null);
     setLoading(true);
     try {
       const res = await signIn("credentials", {
@@ -37,6 +41,26 @@ export function LoginClient() {
       router.replace(next);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function resendVerification() {
+    if (!email) return;
+    setResendStatus("sending");
+    setResendMessage(null);
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "RESEND_FAILED");
+      setResendStatus("sent");
+      setResendMessage("Verification link generated. Check server logs (dev) or your inbox.");
+    } catch (e) {
+      setResendStatus("error");
+      setResendMessage(e instanceof Error ? e.message : "Resend failed");
     }
   }
 
@@ -102,6 +126,20 @@ export function LoginClient() {
                     verify page
                   </a>
                   .
+                </div>
+              ) : null}
+              {error === "EMAIL_NOT_VERIFIED" ? (
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={resendVerification}
+                    disabled={resendStatus === "sending"}
+                  >
+                    {resendStatus === "sending" ? "Sending…" : "Resend verification"}
+                  </Button>
+                  {resendMessage ? <span className="text-destructive">{resendMessage}</span> : null}
                 </div>
               ) : null}
             </div>

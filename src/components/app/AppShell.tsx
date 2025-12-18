@@ -38,6 +38,7 @@ function NavLink({ href, label, icon, onClick }: NavItem) {
         active
           ? "bg-teal-50 text-teal-700 shadow-[0_8px_24px_rgba(16,185,165,0.15)]"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+        "cursor-pointer",
       )}
     >
       <span
@@ -77,6 +78,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [billingStatus, setBillingStatus] = useState<string>("trialing");
   const [trialInfo, setTrialInfo] = useState<string | null>(null);
+  const [settingsTab, setSettingsTab] = useState<"brand" | "billing">("brand");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -237,13 +240,23 @@ export function AppShell({ children }: { children: ReactNode }) {
               <button className="md:hidden rounded-lg border border-slate-200 bg-white p-2 text-slate-600">
                 <Menu className="h-5 w-5" />
               </button>
-              <div className="relative w-full max-w-xl">
+              <form
+                className="relative w-full max-w-xl"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const term = searchTerm.trim();
+                  if (!term) return;
+                  router.push(`/app/library/generated?q=${encodeURIComponent(term)}`);
+                }}
+              >
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   className="w-full rounded-full border border-slate-200 bg-slate-50 px-10 py-2 text-sm outline-none transition focus:border-teal-300 focus:bg-white"
-                  placeholder="Search something"
+                  placeholder="Search content"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
-              </div>
+              </form>
             </div>
             <div className="flex items-center gap-2">
               <div className="hidden flex-col text-right text-xs text-slate-600 md:flex">
@@ -282,124 +295,153 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-slate-800">Brand Profile</div>
-                  <Users className="h-4 w-4 text-teal-600" />
-                </div>
-                {brandLoading ? (
-                  <div className="text-xs text-slate-500">Loading brand…</div>
-                ) : (
-                  <div className="space-y-2 text-sm">
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      placeholder="Brand name"
-                      value={brandForm.brandName}
-                      onChange={(e) => setBrandForm((p) => ({ ...p, brandName: e.target.value }))}
-                    />
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      placeholder="Niche / industry"
-                      value={brandForm.niche}
-                      onChange={(e) => setBrandForm((p) => ({ ...p, niche: e.target.value }))}
-                    />
-                    <textarea
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      rows={3}
-                      placeholder="Company overview"
-                      value={brandForm.companyOverview}
-                      onChange={(e) =>
-                        setBrandForm((p) => ({ ...p, companyOverview: e.target.value }))
-                      }
-                    />
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      placeholder="Target audience"
-                      value={brandForm.targetAudience}
-                      onChange={(e) => setBrandForm((p) => ({ ...p, targetAudience: e.target.value }))}
-                    />
-                    <input
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      placeholder="Goals"
-                      value={brandForm.goals}
-                      onChange={(e) => setBrandForm((p) => ({ ...p, goals: e.target.value }))}
-                    />
-                    <select
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={brandForm.brandVoiceMode}
-                      onChange={(e) =>
-                        setBrandForm((p) => ({ ...p, brandVoiceMode: e.target.value }))
-                      }
-                    >
-                      <option value="preset">Preset tone</option>
-                      <option value="uploaded">Uploaded document</option>
-                    </select>
-                    {brandForm.brandVoiceMode === "preset" ? (
-                      <select
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        value={brandForm.voicePreset}
-                        onChange={(e) =>
-                          setBrandForm((p) => ({ ...p, voicePreset: e.target.value }))
-                        }
-                      >
-                        <option value="professional">Professional</option>
-                        <option value="friendly">Friendly</option>
-                        <option value="bold">Bold</option>
-                        <option value="playful">Playful</option>
-                        <option value="inspirational">Inspirational</option>
-                      </select>
-                    ) : (
-                      <div className="text-xs text-slate-500">
-                        Uploaded voice doc required (manage via main Brand Profile page).
-                      </div>
-                    )}
-                    <button
-                      onClick={saveBrand}
-                      disabled={brandSaving}
-                      className="w-full rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md disabled:opacity-50"
-                    >
-                      {brandSaving ? "Saving…" : "Save brand"}
-                    </button>
-                  </div>
-                )}
+            <div className="mt-4">
+              <div className="mb-3 flex gap-2">
+                <button
+                  className={cn(
+                    "rounded-lg px-4 py-2 text-sm font-semibold",
+                    settingsTab === "brand"
+                      ? "bg-teal-500 text-white shadow-sm"
+                      : "border border-slate-200 bg-white text-slate-700",
+                  )}
+                  onClick={() => setSettingsTab("brand")}
+                >
+                  Brand Profile
+                </button>
+                <button
+                  className={cn(
+                    "rounded-lg px-4 py-2 text-sm font-semibold",
+                    settingsTab === "billing"
+                      ? "bg-teal-500 text-white shadow-sm"
+                      : "border border-slate-200 bg-white text-slate-700",
+                  )}
+                  onClick={() => setSettingsTab("billing")}
+                >
+                  Billing
+                </button>
               </div>
 
-              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-slate-800">Billing</div>
-                  <CreditCard className="h-4 w-4 text-teal-600" />
+              {settingsTab === "brand" ? (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-slate-800">Brand Profile</div>
+                    <Users className="h-4 w-4 text-teal-600" />
+                  </div>
+                  {brandLoading ? (
+                    <div className="text-xs text-slate-500">Loading brand…</div>
+                  ) : (
+                    <div className="space-y-2 text-sm">
+                      <input
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        placeholder="Brand name"
+                        value={brandForm.brandName}
+                        onChange={(e) => setBrandForm((p) => ({ ...p, brandName: e.target.value }))}
+                      />
+                      <input
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        placeholder="Niche / industry"
+                        value={brandForm.niche}
+                        onChange={(e) => setBrandForm((p) => ({ ...p, niche: e.target.value }))}
+                      />
+                      <textarea
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        rows={3}
+                        placeholder="Company overview"
+                        value={brandForm.companyOverview}
+                        onChange={(e) =>
+                          setBrandForm((p) => ({ ...p, companyOverview: e.target.value }))
+                        }
+                      />
+                      <input
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        placeholder="Target audience"
+                        value={brandForm.targetAudience}
+                        onChange={(e) => setBrandForm((p) => ({ ...p, targetAudience: e.target.value }))}
+                      />
+                      <input
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        placeholder="Goals"
+                        value={brandForm.goals}
+                        onChange={(e) => setBrandForm((p) => ({ ...p, goals: e.target.value }))}
+                      />
+                      <select
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        value={brandForm.brandVoiceMode}
+                        onChange={(e) =>
+                          setBrandForm((p) => ({ ...p, brandVoiceMode: e.target.value }))
+                        }
+                      >
+                        <option value="preset">Preset tone</option>
+                        <option value="uploaded">Uploaded document</option>
+                      </select>
+                      {brandForm.brandVoiceMode === "preset" ? (
+                        <select
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                          value={brandForm.voicePreset}
+                          onChange={(e) =>
+                            setBrandForm((p) => ({ ...p, voicePreset: e.target.value }))
+                          }
+                        >
+                          <option value="professional">Professional</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="bold">Bold</option>
+                          <option value="playful">Playful</option>
+                          <option value="inspirational">Inspirational</option>
+                        </select>
+                      ) : (
+                        <div className="text-xs text-slate-500">
+                          Uploaded voice doc required (manage via main Brand Profile page).
+                        </div>
+                      )}
+                      <button
+                        onClick={saveBrand}
+                        disabled={brandSaving}
+                        className="w-full rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md disabled:opacity-50"
+                      >
+                        {brandSaving ? "Saving…" : "Save brand"}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {billingLoading ? (
-                  <div className="text-xs text-slate-500">Loading billing…</div>
-                ) : (
-                  <>
-                    <div className="text-sm text-slate-600">
-                      Status: <span className="font-semibold text-slate-900">{billingStatus}</span>
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Trial: <span className="font-semibold text-slate-900">{trialInfo ?? "—"}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <button
-                        onClick={startCheckout}
-                        className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
-                      >
-                        Subscribe
-                      </button>
-                      <button
-                        onClick={openPortal}
-                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
-                      >
-                        Customer portal
-                      </button>
-                    </div>
-                    {billingMessage ? (
-                      <div className="text-xs text-slate-500">{billingMessage}</div>
-                    ) : null}
-                  </>
-                )}
-              </div>
+              ) : null}
+
+              {settingsTab === "billing" ? (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-slate-800">Billing</div>
+                    <CreditCard className="h-4 w-4 text-teal-600" />
+                  </div>
+                  {billingLoading ? (
+                    <div className="text-xs text-slate-500">Loading billing…</div>
+                  ) : (
+                    <>
+                      <div className="text-sm text-slate-600">
+                        Status: <span className="font-semibold text-slate-900">{billingStatus}</span>
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        Trial: <span className="font-semibold text-slate-900">{trialInfo ?? "—"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <button
+                          onClick={startCheckout}
+                          className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
+                        >
+                          Subscribe
+                        </button>
+                        <button
+                          onClick={openPortal}
+                          className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
+                        >
+                          Customer portal
+                        </button>
+                      </div>
+                      {billingMessage ? (
+                        <div className="text-xs text-slate-500">{billingMessage}</div>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
