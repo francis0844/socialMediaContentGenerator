@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-import { useAuth } from "@/components/auth/useAuth";
+import { useSession } from "next-auth/react";
 
 type BrandColor = { name: string; hex: string };
 type BrandProfile = {
@@ -18,7 +17,8 @@ type BrandProfile = {
 };
 
 export default function BrandProfilePage() {
-  const { idToken } = useAuth();
+  const { data } = useSession();
+  const accountId = data?.accountId ?? null;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -39,12 +39,9 @@ export default function BrandProfilePage() {
 
   useEffect(() => {
     async function run() {
-      if (!idToken) return;
+      if (!accountId) return;
       setLoading(true);
-      const res = await fetch("/api/brand-profile", {
-        headers: { Authorization: `Bearer ${idToken}` },
-        cache: "no-store",
-      });
+      const res = await fetch("/api/brand-profile", { cache: "no-store" });
       const raw: unknown = await res.json();
       const data = raw as { ok?: boolean; profile?: Partial<BrandProfile> | null };
       if (data?.ok && data.profile) {
@@ -63,10 +60,10 @@ export default function BrandProfilePage() {
       setLoading(false);
     }
     run();
-  }, [idToken]);
+  }, [accountId]);
 
   async function save() {
-    if (!idToken) return;
+    if (!accountId) return;
     setError(null);
     setSaving(true);
     try {
@@ -74,7 +71,6 @@ export default function BrandProfilePage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           ...profile,
@@ -105,7 +101,7 @@ export default function BrandProfilePage() {
   }
 
   async function uploadLogo(file: File) {
-    if (!idToken) return;
+    if (!accountId) return;
     setError(null);
     setUploading(true);
     try {
@@ -113,7 +109,6 @@ export default function BrandProfilePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ folder: "smm/logos" }),
       });

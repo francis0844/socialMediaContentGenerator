@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 
-import { requireAuthedUser } from "@/lib/auth";
-import { getOrCreateTenantForUser, isAdminEmail } from "@/lib/tenant";
+import { isAdminEmail } from "@/lib/auth/admin";
+import { requireSession } from "@/lib/auth/session";
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireSession();
+    const account = await prisma.account.findUniqueOrThrow({
+      where: { id: session.accountId },
+    });
 
     const trialDaysLeft = account.trialEndsAt
       ? Math.max(
@@ -17,7 +20,11 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      user: { email: authed.email, isAdmin: isAdminEmail(authed.email) },
+      user: {
+        email: session.user.email,
+        isAdmin: isAdminEmail(session.user.email),
+        emailVerified: session.user.emailVerified,
+      },
       account: {
         id: account.id,
         name: account.name,
@@ -29,6 +36,7 @@ export async function GET() {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
-    return NextResponse.json({ ok: false, error: message }, { status: 401 });
+    const status = message === "UNAUTHENTICATED" ? 401 : 400;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

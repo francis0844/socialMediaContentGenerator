@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { requireAuthedUser } from "@/lib/auth";
+import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 export async function GET() {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireSession();
+    const account = await prisma.account.findUniqueOrThrow({
+      where: { id: session.accountId },
+    });
 
     const [generatedCount, acceptedCount, rejectedCount] = await Promise.all([
       prisma.generatedContent.count({
@@ -51,6 +52,7 @@ export async function GET() {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
-    return NextResponse.json({ ok: false, error: message }, { status: 401 });
+    const status = message === "UNAUTHENTICATED" ? 401 : 400;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

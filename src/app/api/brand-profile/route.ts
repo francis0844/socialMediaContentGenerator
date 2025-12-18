@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
-import { requireAuthedUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 const brandProfileSchema = z.object({
   brandName: z.string().min(1),
@@ -23,11 +22,10 @@ const brandProfileSchema = z.object({
 
 export async function GET() {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireVerifiedSession();
 
     const profile = await prisma.brandProfile.findUnique({
-      where: { accountId: account.id },
+      where: { accountId: session.accountId },
     });
 
     return NextResponse.json({
@@ -48,14 +46,14 @@ export async function GET() {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
-    return NextResponse.json({ ok: false, error: message }, { status: 401 });
+    const status = message === "UNAUTHENTICATED" ? 401 : 400;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
 
 export async function PUT(req: Request) {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireVerifiedSession();
 
     const body = await req.json();
     const parsed = brandProfileSchema.parse(body);
@@ -64,7 +62,7 @@ export async function PUT(req: Request) {
       parsed.colors === null ? Prisma.JsonNull : (parsed.colors ?? undefined);
 
     const profile = await prisma.brandProfile.upsert({
-      where: { accountId: account.id },
+      where: { accountId: session.accountId },
       update: {
         brandName: parsed.brandName,
         logoUrl: parsed.logoUrl ?? null,
@@ -77,7 +75,7 @@ export async function PUT(req: Request) {
         voiceDocUrl: parsed.voiceDocUrl ?? null,
       },
       create: {
-        accountId: account.id,
+        accountId: session.accountId,
         brandName: parsed.brandName,
         logoUrl: parsed.logoUrl ?? null,
         about: parsed.about,

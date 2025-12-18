@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAuthedUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/auth/session";
 import { getCloudinary } from "@/lib/cloudinary";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 const bodySchema = z.object({
   folder: z.string().min(1).default("smm"),
@@ -11,8 +10,7 @@ const bodySchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const authed = await requireAuthedUser();
-    await getOrCreateTenantForUser(authed);
+    await requireVerifiedSession();
 
     const body = bodySchema.parse(await req.json().catch(() => ({})));
     const cloudinary = getCloudinary();

@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 
-import { requireAuthedUser } from "@/lib/auth";
+import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { getServerEnv } from "@/lib/env/server";
 import { getStripe } from "@/lib/stripe";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 export async function POST(req: Request) {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const authedSession = await requireSession();
+    const account = await prisma.account.findUniqueOrThrow({
+      where: { id: authedSession.accountId },
+    });
     const env = getServerEnv();
+    if (!env.STRIPE_PRICE_ID_FULL_ACCESS) throw new Error("STRIPE_NOT_CONFIGURED");
     const stripe = getStripe();
 
     const origin = req.headers.get("origin") ?? "http://localhost:3000";
@@ -19,7 +21,7 @@ export async function POST(req: Request) {
       account.billingCustomerId ??
       (
         await stripe.customers.create({
-          email: authed.email,
+          email: authedSession.user.email ?? undefined,
           metadata: { accountId: account.id },
         })
       ).id;
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       client_reference_id: account.id,
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
       metadata: { accountId: account.id },
     });
 
-    return NextResponse.json({ ok: true, url: session.url });
+    return NextResponse.json({ ok: true, url: checkoutSession.url });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
     const status = message === "UNAUTHENTICATED" ? 401 : 400;

@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { updateMemorySummary } from "@/lib/ai/memory";
-import { requireAuthedUser } from "@/lib/auth";
+import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { getRatelimit } from "@/lib/ratelimit";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 const bodySchema = z.object({
   decision: z.enum(["accept", "reject"]),
@@ -14,12 +13,11 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireSession();
 
     const rate = getRatelimit();
     if (rate) {
-      const rl = await rate.limit(`fb:${authed.firebaseUid}`);
+      const rl = await rate.limit(`fb:${session.user.id}`);
       if (!rl.success) {
         return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
       }
@@ -29,7 +27,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     const body = bodySchema.parse(await req.json());
 
     const content = await prisma.generatedContent.findFirst({
-      where: { id, accountId: account.id },
+      where: { id, accountId: session.accountId },
       include: { request: true },
     });
     if (!content) {
@@ -37,7 +35,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     }
 
     const prevMemory =
-      (await prisma.aiMemory.findUnique({ where: { accountId: account.id } }))
+      (await prisma.aiMemory.findUnique({ where: { accountId: session.accountId } }))
         ?.memorySummary ?? "";
 
     const updatedSummary = await updateMemorySummary({
@@ -62,7 +60,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
       await tx.feedback.create({
         data: {
-          accountId: account.id,
+          accountId: session.accountId,
           contentId: content.id,
           decision: body.decision,
           reason: body.reason,
@@ -72,9 +70,9 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       });
 
       await tx.aiMemory.upsert({
-        where: { accountId: account.id },
+        where: { accountId: session.accountId },
         update: { memorySummary: updatedSummary },
-        create: { accountId: account.id, memorySummary: updatedSummary },
+        create: { accountId: session.accountId, memorySummary: updatedSummary },
       });
     });
 

@@ -7,6 +7,9 @@ import { getStripe, mapStripeSubscriptionStatus } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const env = getServerEnv();
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json({ ok: false, error: "STRIPE_NOT_CONFIGURED" }, { status: 500 });
+  }
   const stripe = getStripe();
 
   const signature = req.headers.get("stripe-signature");

@@ -6,6 +6,9 @@ import { getServerEnv } from "@/lib/env/server";
 
 export function getStripe() {
   const env = getServerEnv();
+  if (!env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_NOT_CONFIGURED");
+  }
   return new Stripe(env.STRIPE_SECRET_KEY);
 }
 

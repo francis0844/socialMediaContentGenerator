@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-
-import { useAuth } from "@/components/auth/useAuth";
+import { useSession } from "next-auth/react";
 
 export function Landing() {
-  const { loading, user } = useAuth();
+  const { status, data } = useSession();
+  const user = data?.user ?? null;
+  const loading = status === "loading";
 
   return (
     <div className="min-h-dvh bg-black text-white">

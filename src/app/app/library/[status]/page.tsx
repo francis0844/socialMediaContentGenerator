@@ -2,8 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-import { useAuth } from "@/components/auth/useAuth";
+import { useSession } from "next-auth/react";
 
 type Status = "generated" | "accepted" | "rejected";
 
@@ -22,7 +21,7 @@ type Item = {
 export default function LibraryStatusPage() {
   const params = useParams<{ status: string }>();
   const status = (params.status as Status) ?? "generated";
-  const { idToken } = useAuth();
+  const { status: sessionStatus } = useSession();
 
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +41,10 @@ export default function LibraryStatusPage() {
   }, [status]);
 
   async function load() {
-    if (!idToken) return;
+    if (sessionStatus !== "authenticated") return;
     setLoading(true);
     setError(null);
     const res = await fetch(`/api/content?status=${status}`, {
-      headers: { Authorization: `Bearer ${idToken}` },
       cache: "no-store",
     });
     const raw: unknown = await res.json();
@@ -64,7 +62,7 @@ export default function LibraryStatusPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idToken, status]);
+  }, [sessionStatus, status]);
 
   function openDecision(item: Item, nextDecision: "accept" | "reject") {
     setSelected(item);
@@ -75,7 +73,7 @@ export default function LibraryStatusPage() {
   }
 
   async function submitDecision() {
-    if (!idToken || !selected) return;
+    if (sessionStatus !== "authenticated" || !selected) return;
     setSubmitting(true);
     setAiResponse(null);
     try {
@@ -83,7 +81,6 @@ export default function LibraryStatusPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ decision, reason }),
       });

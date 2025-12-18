@@ -3,11 +3,10 @@ import { z } from "zod";
 
 import { generateAIOutput, generationDirectionSchema } from "@/lib/ai/generate";
 import { contentTypeSchema, socialPlatformSchema } from "@/lib/ai/schemas";
-import { requireAuthedUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { hasPaidAccess, assertWithinMonthlyLimit } from "@/lib/limits";
 import { getRatelimit } from "@/lib/ratelimit";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 const requestSchema = z.object({
   contentType: contentTypeSchema,
@@ -17,12 +16,14 @@ const requestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireVerifiedSession();
+    const account = await prisma.account.findUniqueOrThrow({
+      where: { id: session.accountId },
+    });
 
     const rate = getRatelimit();
     if (rate) {
-      const rl = await rate.limit(`gen:${authed.firebaseUid}`);
+      const rl = await rate.limit(`gen:${session.user.id}`);
       if (!rl.success) {
         return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
       }

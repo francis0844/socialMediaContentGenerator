@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import { useAuth } from "@/components/auth/useAuth";
+import { useSession } from "next-auth/react";
 
 type AccountRow = {
   id: string;
@@ -15,20 +14,17 @@ type AccountRow = {
 };
 
 export default function AdminPage() {
-  const { idToken, isAdmin } = useAuth();
+  const { status } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
 
   useEffect(() => {
     async function run() {
-      if (!idToken) return;
+      if (status !== "authenticated") return;
       setLoading(true);
       setError(null);
-      const res = await fetch("/api/admin/accounts", {
-        headers: { Authorization: `Bearer ${idToken}` },
-        cache: "no-store",
-      });
+      const res = await fetch("/api/admin/accounts", { cache: "no-store" });
       const raw: unknown = await res.json();
       const data = raw as { ok?: boolean; error?: string; accounts?: AccountRow[] };
       if (!res.ok || !data?.ok) {
@@ -41,9 +37,9 @@ export default function AdminPage() {
       setLoading(false);
     }
     run();
-  }, [idToken]);
+  }, [status]);
 
-  if (!isAdmin) {
+  if (error === "FORBIDDEN") {
     return (
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Admin</h1>

@@ -2,16 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { contentTypeSchema, socialPlatformSchema } from "@/lib/ai/schemas";
-import { requireAuthedUser } from "@/lib/auth";
+import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
-import { getOrCreateTenantForUser } from "@/lib/tenant";
 
 const statusSchema = z.enum(["generated", "accepted", "rejected"]);
 
 export async function GET(req: Request) {
   try {
-    const authed = await requireAuthedUser();
-    const { account } = await getOrCreateTenantForUser(authed);
+    const session = await requireSession();
 
     const url = new URL(req.url);
     const status = statusSchema.parse(url.searchParams.get("status") ?? "generated");
@@ -23,7 +21,7 @@ export async function GET(req: Request) {
 
     const items = await prisma.generatedContent.findMany({
       where: {
-        accountId: account.id,
+        accountId: session.accountId,
         status,
         ...(platform || contentType
           ? {
@@ -55,8 +53,7 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
-    const status =
-      message === "UNAUTHENTICATED" ? 401 : message.includes("Invalid") ? 400 : 400;
+    const status = message === "UNAUTHENTICATED" ? 401 : 400;
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

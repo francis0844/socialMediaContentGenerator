@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
-
-import { useAuth } from "@/components/auth/useAuth";
+import { signOut, useSession } from "next-auth/react";
 
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
@@ -26,7 +25,10 @@ function NavLink({ href, label }: { href: string; label: string }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { loading, user, account, logout, isAdmin } = useAuth();
+  const { status, data } = useSession();
+  const loading = status === "loading";
+  const user = data?.user ?? null;
+  const accountId = data?.accountId ?? null;
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -49,14 +51,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div>
             <div className="text-sm tracking-[0.3em] text-white/70 uppercase">Lexus</div>
             <div className="mt-2 text-lg font-semibold tracking-tight">
-              {account?.name ?? "Studio"}
+              Studio
             </div>
+            {accountId ? (
+              <div className="mt-1 text-xs text-white/50">Account: {accountId}</div>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden text-sm text-white/70 md:block">{user.email}</div>
             <button
-              onClick={logout}
+              onClick={() => signOut({ callbackUrl: "/" })}
               className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10"
             >
               Sign out
@@ -74,7 +79,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               <NavLink href="/app/library/rejected" label="Rejected" />
               <NavLink href="/app/brand" label="Brand Profile" />
               <NavLink href="/app/billing" label="Billing" />
-              {isAdmin ? <NavLink href="/app/admin" label="Admin" /> : null}
             </div>
           </nav>
 
