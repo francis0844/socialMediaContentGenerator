@@ -54,6 +54,12 @@ export type GenerationInput = {
   memorySummary: string;
 };
 
+function clampContext(text: string, maxChars: number) {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxChars) return trimmed;
+  return trimmed.slice(0, maxChars);
+}
+
 function buildPrompt(input: GenerationInput) {
   const { contentType, platform, direction, brand, memorySummary } = input;
 
@@ -95,7 +101,7 @@ function buildPrompt(input: GenerationInput) {
     .join("\n");
 
   const memoryBlock = memorySummary?.trim()
-    ? `Memory summary (what has worked/failed so far):\n${memorySummary.trim()}`
+    ? `Memory summary (what has worked/failed so far):\n${clampContext(memorySummary, 1200)}`
     : "Memory summary: (none yet)";
 
   const schemaHint = [

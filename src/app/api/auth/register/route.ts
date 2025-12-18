@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
+import { getRatelimit, getClientIpFromHeaders } from "@/lib/ratelimit";
 import { hashPassword } from "@/lib/security/password";
 import { createEmailVerificationToken } from "@/lib/security/emailVerification";
 import { ensureAccountForUser } from "@/lib/tenancy/ensureAccountForUser";
@@ -13,6 +14,15 @@ const bodySchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const rate = getRatelimit();
+    if (rate) {
+      const ip = getClientIpFromHeaders(req.headers as unknown as Headers);
+      const rl = await rate.limit(`auth:register:${ip}`);
+      if (!rl.success) {
+        return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
+      }
+    }
+
     const body = bodySchema.parse(await req.json());
     const email = body.email.toLowerCase();
 
@@ -46,4 +56,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: message }, { status: 400 });
   }
 }
-

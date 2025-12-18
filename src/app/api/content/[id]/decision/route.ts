@@ -4,6 +4,7 @@ import { z } from "zod";
 import { updateMemorySummary } from "@/lib/ai/memory";
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
+import { log } from "@/lib/observability/log";
 import { getRatelimit } from "@/lib/ratelimit";
 
 const bodySchema = z.object({
@@ -34,11 +35,13 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       return NextResponse.json({ ok: false, error: "NOT_FOUND" }, { status: 404 });
     }
 
-    const prevMemory =
-      (await prisma.aiMemory.findUnique({ where: { accountId: session.accountId } }))
-        ?.memorySummary ?? "";
+    const account = await prisma.account.findUniqueOrThrow({
+      where: { id: session.accountId },
+      select: { memorySummary: true },
+    });
+    const prevMemory = account.memorySummary ?? "";
 
-    const updatedSummary = await updateMemorySummary({
+    const memoryUpdate = await updateMemorySummary({
       previousSummary: prevMemory,
       decision: body.decision,
       reason: body.reason,
@@ -46,11 +49,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       platform: content.request.platform,
       outputJson: content.output,
     });
-
-    const aiResponse =
-      body.decision === "accept"
-        ? `Noted. I’ll produce more content like this for ${content.request.platform} — ${body.reason}`
-        : `Got it. I’ll avoid outputs like this for ${content.request.platform} — ${body.reason}`;
+    const updatedSummary = memoryUpdate.memorySummary;
+    const aiResponse = memoryUpdate.aiResponse;
 
     await prisma.$transaction(async (tx) => {
       await tx.generatedContent.update({
@@ -70,11 +70,16 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         },
       });
 
-      await tx.aiMemory.upsert({
-        where: { accountId: session.accountId },
-        update: { memorySummary: updatedSummary },
-        create: { accountId: session.accountId, memorySummary: updatedSummary },
+      await tx.account.update({
+        where: { id: session.accountId },
+        data: { memorySummary: updatedSummary },
       });
+    });
+
+    log("info", "ai.feedback.applied", {
+      accountId: session.accountId,
+      contentId: content.id,
+      decision: body.decision,
     });
 
     return NextResponse.json({
@@ -84,6 +89,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
+    log("error", "ai.feedback.error", { error: message });
     const status = message === "UNAUTHENTICATED" ? 401 : 400;
     return NextResponse.json({ ok: false, error: message }, { status });
   }

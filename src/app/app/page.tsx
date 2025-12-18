@@ -16,11 +16,11 @@ type UsageResponse = {
         resetsAt: string;
       }
     | {
-        scope: "billing_cycle";
+        scope: "monthly";
         used: number;
         limit: number;
-        periodStart: string | null;
-        periodEnd: string | null;
+        monthStart: string;
+        monthEnd: string;
       };
   billingStatus?: string;
   trialEndsAt?: string | null;
@@ -68,7 +68,7 @@ export default function DashboardPage() {
           <div className="text-sm text-white/70">
             {usageData?.quota?.scope === "trial_daily"
               ? "Trial (daily quota)"
-              : "Billing cycle"}
+              : "This month"}
           </div>
           <div className="mt-2 text-2xl font-semibold">
             {loading

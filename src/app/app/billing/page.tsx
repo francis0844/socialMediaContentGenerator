@@ -13,11 +13,11 @@ type UsageResponse = {
   quota?:
     | { scope: "trial_daily"; used: number; limit: number; resetsAt: string }
     | {
-        scope: "billing_cycle";
+        scope: "monthly";
         used: number;
         limit: number;
-        periodStart: string | null;
-        periodEnd: string | null;
+        monthStart: string;
+        monthEnd: string;
       };
   error?: string;
 };
@@ -90,7 +90,7 @@ export default function BillingPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Billing</h1>
           <p className="mt-1 text-sm text-white/70">
-            Full Access: $120/month • 1000 generations per billing cycle
+            Full Access: $120/month • 1000 generations per month
           </p>
         </div>
         <Button variant="outline" onClick={refresh} disabled={loading}>
@@ -131,7 +131,7 @@ export default function BillingPage() {
               </>
             ) : (
               <>
-                Billing-cycle quota:{" "}
+                Monthly quota:{" "}
                 <span className="text-white">
                   {usage?.quota?.used ?? 0} / {usage?.quota?.limit ?? 1000}
                 </span>
@@ -173,4 +173,3 @@ export default function BillingPage() {
     </div>
   );
 }
-

@@ -5,7 +5,7 @@ import { generateAIOutput, generationDirectionSchema } from "@/lib/ai/generate";
 import { contentTypeSchema, socialPlatformSchema } from "@/lib/ai/schemas";
 import { requireVerifiedSession } from "@/lib/auth/session";
 import {
-  assertWithinBillingCycleLimit,
+  assertWithinMonthlyLimit,
   assertWithinTrialDailyLimit,
   hasGenerationAccess,
   isTrialActive,
@@ -13,6 +13,7 @@ import {
 import { getBrandProfileCompleteness } from "@/lib/brand/profile";
 import { prisma } from "@/lib/db";
 import { maybeFetchVoiceDocText } from "@/lib/brand/voiceDoc";
+import { log } from "@/lib/observability/log";
 import { getRatelimit } from "@/lib/ratelimit";
 
 const requestSchema = z.object({
@@ -48,10 +49,7 @@ export async function POST(req: Request) {
     if (isTrialActive(account.trialEndsAt)) {
       await assertWithinTrialDailyLimit(account.id);
     } else {
-      await assertWithinBillingCycleLimit({
-        accountId: account.id,
-        periodStart: account.billingPeriodStart ?? null,
-      });
+      await assertWithinMonthlyLimit(account.id);
     }
 
     const body = await req.json();
@@ -74,12 +72,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const memory = await prisma.aiMemory.findUnique({
-      where: { accountId: account.id },
-    });
-
     const voiceDocText =
       brand.voiceMode === "uploaded" ? await maybeFetchVoiceDocText(brand.voiceDocUrl) : null;
+
+    log("info", "ai.generate.request", {
+      accountId: account.id,
+      userId: session.user.id,
+      contentType: parsed.contentType,
+      platform: parsed.platform,
+    });
 
     const output = await generateAIOutput({
       contentType: parsed.contentType,
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
             : "uploaded",
         voiceDocText,
       },
-      memorySummary: memory?.memorySummary ?? "",
+      memorySummary: (account.memorySummary ?? "").slice(0, 1200),
     });
 
     const { request, content } = await prisma.$transaction(async (tx) => {
@@ -157,11 +158,14 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
+    log("error", "ai.generate.error", { error: message });
     const status =
       message === "UNAUTHENTICATED"
         ? 401
-        : message === "TRIAL_DAILY_LIMIT_REACHED" || message === "BILLING_CYCLE_LIMIT_REACHED"
+        : message === "TRIAL_DAILY_LIMIT_REACHED" || message === "MONTHLY_LIMIT_REACHED"
           ? 429
+          : message === "OPENAI_NOT_CONFIGURED"
+            ? 500
           : 400;
     return NextResponse.json({ ok: false, error: message }, { status });
   }

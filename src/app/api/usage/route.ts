@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/session";
 import {
-  BILLING_CYCLE_GENERATION_LIMIT,
+  MONTHLY_GENERATION_LIMIT,
   TRIAL_DAILY_GENERATION_LIMIT,
   isTrialActive,
+  startOfMonthUtc,
+  startOfNextMonthUtc,
   startOfTodayUtc,
 } from "@/lib/billing/quota";
 import { prisma } from "@/lib/db";
@@ -36,7 +38,7 @@ export async function GET() {
         )
       : null;
 
-    const [trialDailyUsed, cycleUsed] = await Promise.all([
+    const [trialDailyUsed, monthUsed] = await Promise.all([
       trialActive
         ? prisma.generationRequest.count({
             where: { accountId: account.id, createdAt: { gte: startOfTodayUtc() } },
@@ -45,7 +47,7 @@ export async function GET() {
       prisma.generationRequest.count({
         where: {
           accountId: account.id,
-          createdAt: { gte: account.billingPeriodStart ?? new Date(0) },
+          createdAt: { gte: startOfMonthUtc() },
         },
       }),
     ]);
@@ -65,11 +67,11 @@ export async function GET() {
             resetsAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           }
         : {
-            scope: "billing_cycle",
-            used: cycleUsed,
-            limit: BILLING_CYCLE_GENERATION_LIMIT,
-            periodStart: account.billingPeriodStart?.toISOString() ?? null,
-            periodEnd: account.billingPeriodEnd?.toISOString() ?? null,
+            scope: "monthly",
+            used: monthUsed,
+            limit: MONTHLY_GENERATION_LIMIT,
+            monthStart: startOfMonthUtc().toISOString(),
+            monthEnd: startOfNextMonthUtc().toISOString(),
           },
       billingStatus: account.billingStatus,
       trialEndsAt: account.trialEndsAt?.toISOString() ?? null,

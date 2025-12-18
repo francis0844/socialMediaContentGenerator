@@ -110,6 +110,7 @@ model Account {
   billingPeriodStart    DateTime?
   billingPeriodEnd      DateTime?
   trialEndsAt           DateTime?
+  memorySummary         String        @default("")
   createdAt             DateTime      @default(now())
 
   memberships        Membership[]

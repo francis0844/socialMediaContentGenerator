@@ -20,3 +20,9 @@ export function getRatelimit() {
     analytics: true,
   });
 }
+
+export function getClientIpFromHeaders(headers: Headers) {
+  const forwarded = headers.get("x-forwarded-for") ?? "";
+  const ip = forwarded.split(",")[0]?.trim();
+  return ip || "unknown";
+}

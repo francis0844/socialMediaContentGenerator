@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getServerEnv } from "@/lib/env/server";
 import { getStripe, mapStripeSubscriptionStatus } from "@/lib/stripe";
+import { log } from "@/lib/observability/log";
 
 export async function POST(req: Request) {
   const env = getServerEnv();
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    log("info", "stripe.webhook.received", { type: event.type, id: event.id });
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -48,6 +50,11 @@ export async function POST(req: Request) {
               billingPeriodStart: item ? new Date(item.current_period_start * 1000) : null,
               billingPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
             },
+          });
+          log("info", "stripe.webhook.synced", {
+            accountId,
+            subscriptionId,
+            status: sub.status,
           });
         }
         break;
@@ -79,6 +86,11 @@ export async function POST(req: Request) {
               billingPeriodEnd: item ? new Date(item.current_period_end * 1000) : null,
             },
           });
+          log("info", "stripe.webhook.synced", {
+            accountId,
+            subscriptionId: sub.id,
+            status: sub.status,
+          });
         }
         break;
       }
@@ -89,6 +101,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "WEBHOOK_FAILED";
+    log("error", "stripe.webhook.error", { error: message });
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

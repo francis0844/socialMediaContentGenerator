@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
+import { log } from "@/lib/observability/log";
 
 const bodySchema = z.object({
   reason: z.string().min(2).max(500).optional(),
@@ -47,13 +48,9 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         data: { status: "generated" },
       });
 
-      await tx.aiMemory.upsert({
-        where: { accountId: session.accountId },
-        update: { memorySummary: lastFeedback.previousMemorySnapshot ?? "" },
-        create: {
-          accountId: session.accountId,
-          memorySummary: lastFeedback.previousMemorySnapshot ?? "",
-        },
+      await tx.account.update({
+        where: { id: session.accountId },
+        data: { memorySummary: lastFeedback.previousMemorySnapshot ?? "" },
       });
 
       await tx.feedback.update({
@@ -65,6 +62,12 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       });
     });
 
+    log("info", "ai.feedback.undone", {
+      accountId: session.accountId,
+      contentId: id,
+      decision: lastFeedback.decision,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "UNKNOWN";
@@ -72,4 +75,3 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     return NextResponse.json({ ok: false, error: message }, { status });
   }
 }
-
