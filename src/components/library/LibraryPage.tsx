@@ -1,0 +1,381 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+type Status = "generated" | "accepted" | "rejected";
+type Platform = "" | "facebook" | "instagram" | "pinterest" | "x";
+type ContentType = "" | "graphic" | "story" | "text" | "video";
+
+type Item = {
+  id: string;
+  status: Status;
+  createdAt: string;
+  title: string | null;
+  platform: string;
+  contentType: string;
+  caption: string | null;
+  hashtags: unknown;
+  output: unknown;
+};
+
+type ContentResponse = { ok: true; items: Item[] } | { ok: false; error: string };
+
+export function LibraryPage({ status }: { status: Status }) {
+  const title = useMemo(() => {
+    if (status === "accepted") return "Accepted";
+    if (status === "rejected") return "Rejected";
+    return "Generated";
+  }, [status]);
+
+  const [platform, setPlatform] = useState<Platform>("");
+  const [type, setType] = useState<ContentType>("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selected, setSelected] = useState<Item | null>(null);
+
+  const [decisionOpen, setDecisionOpen] = useState(false);
+  const [decision, setDecision] = useState<"accept" | "reject">("accept");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
+
+  const [undoOpen, setUndoOpen] = useState(false);
+  const [undoReason, setUndoReason] = useState("");
+  const [undoing, setUndoing] = useState(false);
+
+  function toIsoEndOfDay(dateStr: string) {
+    const d = new Date(dateStr);
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();
+  }
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+
+    const params = new URLSearchParams({ status });
+    if (platform) params.set("platform", platform);
+    if (type) params.set("type", type);
+    if (from) params.set("from", new Date(from).toISOString());
+    if (to) params.set("to", toIsoEndOfDay(to));
+
+    const res = await fetch(`/api/content?${params.toString()}`, { cache: "no-store" });
+    const raw: unknown = await res.json();
+    const data = raw as ContentResponse;
+
+    if (!res.ok || !data.ok) {
+      setError("error" in data ? data.error : "LOAD_FAILED");
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    setItems(data.items);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, platform, type, from, to]);
+
+  function openPreview(item: Item) {
+    setSelected(item);
+    setPreviewOpen(true);
+  }
+
+  function openDecision(item: Item, nextDecision: "accept" | "reject") {
+    setSelected(item);
+    setDecision(nextDecision);
+    setReason("");
+    setAiResponse(null);
+    setDecisionOpen(true);
+  }
+
+  async function submitDecision() {
+    if (!selected) return;
+    setSubmitting(true);
+    setAiResponse(null);
+    try {
+      const res = await fetch(`/api/content/${selected.id}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision, reason }),
+      });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; error?: string; aiResponse?: string };
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "DECISION_FAILED");
+      setAiResponse(data.aiResponse ?? null);
+      await load();
+    } catch (e) {
+      setAiResponse(e instanceof Error ? e.message : "Decision failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function openUndo(item: Item) {
+    setSelected(item);
+    setUndoReason("");
+    setUndoOpen(true);
+  }
+
+  async function submitUndo() {
+    if (!selected) return;
+    setUndoing(true);
+    try {
+      const res = await fetch(`/api/content/${selected.id}/undo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: undoReason || undefined }),
+      });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; error?: string };
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "UNDO_FAILED");
+      setUndoOpen(false);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Undo failed");
+    } finally {
+      setUndoing(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          <p className="mt-1 text-sm text-white/70">
+            {status === "generated"
+              ? "Review content and accept or reject with a reason."
+              : "Browse your library. You can undo back to Generated."}
+          </p>
+        </div>
+        <Button variant="outline" onClick={load}>
+          Refresh
+        </Button>
+      </div>
+
+      <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/40 p-4 md:grid-cols-4">
+        <div className="space-y-2">
+          <Label>Platform</Label>
+          <select
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value as Platform)}
+          >
+            <option value="">All</option>
+            <option value="facebook">Facebook</option>
+            <option value="instagram">Instagram</option>
+            <option value="pinterest">Pinterest</option>
+            <option value="x">X</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label>Type</Label>
+          <select
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={type}
+            onChange={(e) => setType(e.target.value as ContentType)}
+          >
+            <option value="">All</option>
+            <option value="graphic">Graphic</option>
+            <option value="story">Story</option>
+            <option value="text">Text</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label>From</Label>
+          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>To</Label>
+          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="mt-6 space-y-3">
+        {loading ? (
+          <div className="text-sm text-white/70">Loading…</div>
+        ) : items.length ? (
+          items.map((i) => (
+            <div key={i.id} className="rounded-2xl border border-white/10 bg-black/40 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <button
+                    onClick={() => openPreview(i)}
+                    className="text-left text-sm text-white underline-offset-4 hover:underline"
+                  >
+                    {i.title ?? `${i.contentType} • ${i.platform}`}
+                  </button>
+                  <div className="mt-1 text-xs text-white/60">
+                    {new Date(i.createdAt).toLocaleString()} • {i.platform} • {i.contentType}
+                  </div>
+                </div>
+
+                {status === "generated" ? (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => openDecision(i, "accept")}>Accept</Button>
+                    <Button variant="outline" onClick={() => openDecision(i, "reject")}>
+                      Reject
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={() => openUndo(i)}>
+                    Move back to Generated
+                  </Button>
+                )}
+              </div>
+
+              {i.caption ? (
+                <pre className="mt-4 whitespace-pre-wrap text-sm text-white/80">{i.caption}</pre>
+              ) : null}
+            </div>
+          ))
+        ) : (
+          <div className="text-sm text-white/60">No items yet.</div>
+        )}
+      </div>
+
+      {previewOpen && selected ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-sm text-white/70">Preview</div>
+                <div className="mt-1 text-sm text-white">
+                  {selected.title ?? `${selected.contentType} • ${selected.platform}`}
+                </div>
+                <div className="mt-1 text-xs text-white/60 break-all">{selected.id}</div>
+              </div>
+              <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+                Close
+              </Button>
+            </div>
+
+            {selected.caption ? (
+              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/80">
+                {selected.caption}
+              </pre>
+            ) : null}
+
+            <details className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+              <summary className="cursor-pointer text-sm text-white/80">Raw JSON</summary>
+              <pre className="mt-3 max-h-[300px] overflow-auto text-xs text-white/70">
+                {JSON.stringify(selected.output, null, 2)}
+              </pre>
+            </details>
+
+            {selected.status === "generated" ? (
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+                <Button onClick={() => openDecision(selected, "accept")}>Accept</Button>
+                <Button variant="outline" onClick={() => openDecision(selected, "reject")}>
+                  Reject
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-6 flex items-center justify-end">
+                <Button variant="outline" onClick={() => openUndo(selected)}>
+                  Move back to Generated
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {decisionOpen && selected ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black p-6">
+            <div className="text-sm text-white/70">
+              {decision === "accept" ? "Accept" : "Reject"} — reason required
+            </div>
+            <div className="mt-2 text-sm text-white">
+              {selected.title ?? `${selected.contentType} • ${selected.platform}`}
+            </div>
+
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={4}
+              className="mt-4"
+              placeholder={
+                decision === "accept"
+                  ? "What worked? (tone, structure, hook, clarity…) "
+                  : "What didn’t work? What should we avoid next time?"
+              }
+            />
+
+            {aiResponse ? (
+              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+                {aiResponse}
+              </div>
+            ) : null}
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={submitting}>
+                Close
+              </Button>
+              <Button
+                onClick={submitDecision}
+                disabled={submitting || reason.trim().length < 2}
+              >
+                {submitting ? "Saving…" : "Submit"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {undoOpen && selected ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black p-6">
+            <div className="text-sm text-white/70">
+              Move back to Generated — this will revert the learning snapshot
+            </div>
+            <div className="mt-2 text-sm text-white">
+              {selected.title ?? `${selected.contentType} • ${selected.platform}`}
+            </div>
+
+            <Textarea
+              value={undoReason}
+              onChange={(e) => setUndoReason(e.target.value)}
+              rows={3}
+              className="mt-4"
+              placeholder="Optional: why are you undoing?"
+            />
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setUndoOpen(false)} disabled={undoing}>
+                Cancel
+              </Button>
+              <Button onClick={submitUndo} disabled={undoing}>
+                {undoing ? "Undoing…" : "Move back"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+

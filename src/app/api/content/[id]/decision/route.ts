@@ -65,6 +65,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
           decision: body.decision,
           reason: body.reason,
           aiResponse,
+          previousMemorySnapshot: prevMemory,
           memorySnapshot: updatedSummary,
         },
       });

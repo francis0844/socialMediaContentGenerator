@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 
 const statusSchema = z.enum(["generated", "accepted", "rejected"]);
+const dateSchema = z.string().datetime().optional();
 
 export async function GET(req: Request) {
   try {
@@ -15,14 +16,26 @@ export async function GET(req: Request) {
     const status = statusSchema.parse(url.searchParams.get("status") ?? "generated");
     const platformParam = url.searchParams.get("platform");
     const typeParam = url.searchParams.get("type");
+    const fromParam = url.searchParams.get("from") ?? undefined;
+    const toParam = url.searchParams.get("to") ?? undefined;
 
     const platform = platformParam ? socialPlatformSchema.parse(platformParam) : null;
     const contentType = typeParam ? contentTypeSchema.parse(typeParam) : null;
+    const from = fromParam ? dateSchema.parse(fromParam) : undefined;
+    const to = toParam ? dateSchema.parse(toParam) : undefined;
 
     const items = await prisma.generatedContent.findMany({
       where: {
         accountId: session.accountId,
         status,
+        ...(from || to
+          ? {
+              createdAt: {
+                ...(from ? { gte: new Date(from) } : {}),
+                ...(to ? { lte: new Date(to) } : {}),
+              },
+            }
+          : {}),
         ...(platform || contentType
           ? {
               request: {

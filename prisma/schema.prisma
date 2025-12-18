@@ -198,7 +198,10 @@ model Feedback {
   decision       FeedbackDecision
   reason         String
   aiResponse     String
+  previousMemorySnapshot String?
   memorySnapshot String?
+  undoneAt       DateTime?
+  undoReason     String?
   createdAt      DateTime         @default(now())
 
   account Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
