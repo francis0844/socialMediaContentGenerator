@@ -31,6 +31,7 @@ export function PlatformToggle({
           type="button"
           size="sm"
           variant={value === p ? "secondary" : "outline"}
+          className={value === p ? "bg-white text-slate-900 border-slate-300" : "bg-white text-slate-800 hover:bg-slate-100"}
           onClick={() => onChange(p)}
           disabled={list.length === 1}
         >

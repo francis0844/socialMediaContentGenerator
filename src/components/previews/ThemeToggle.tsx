@@ -18,20 +18,21 @@ export function ThemeToggle({
       <Button
         type="button"
         size="sm"
-        variant={value === "dark" ? "secondary" : "outline"}
-        onClick={() => onChange("dark")}
-      >
-        Dark
-      </Button>
-      <Button
-        type="button"
-        size="sm"
         variant={value === "light" ? "secondary" : "outline"}
+        className={value === "light" ? "bg-white text-slate-900 border-slate-300" : "bg-white text-slate-800 hover:bg-slate-100"}
         onClick={() => onChange("light")}
       >
         Light
       </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant={value === "dark" ? "secondary" : "outline"}
+        className={value === "dark" ? "bg-slate-900 text-white hover:bg-slate-800" : "bg-white text-slate-800 hover:bg-slate-100"}
+        onClick={() => onChange("dark")}
+      >
+        Dark
+      </Button>
     </div>
   );
 }
-

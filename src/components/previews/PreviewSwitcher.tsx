@@ -79,7 +79,7 @@ export function PreviewSwitcher({
   const containerStyles =
     theme === "light"
       ? "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900"
-      : "rounded-2xl border border-white/10 bg-black/40 p-4 text-white";
+      : "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900";
 
   const summaryText = theme === "light" ? "text-slate-700" : "text-white/80";
   const jsonText = theme === "light" ? "text-slate-700" : "text-white/70";
