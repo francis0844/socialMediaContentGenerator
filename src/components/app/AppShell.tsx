@@ -34,7 +34,7 @@ function NavLink({ href, label, icon, onClick }: NavItem) {
       {...baseProps}
       onClick={onClick}
       className={cn(
-        "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+        "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all w-full",
         active
           ? "bg-teal-50 text-teal-700 shadow-[0_8px_24px_rgba(16,185,165,0.15)]"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
@@ -49,7 +49,7 @@ function NavLink({ href, label, icon, onClick }: NavItem) {
       >
         {icon}
       </span>
-      {label}
+      <span className="flex-1 text-left">{label}</span>
     </Comp>
   );
 }
