@@ -31,6 +31,7 @@ type UsageResponse = {
 
 export default function DashboardPage() {
   const { data } = useSession();
+  const user = data?.user ?? null;
   const accountId = data?.accountId ?? null;
   const [usageData, setUsageData] = useState<UsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
