@@ -19,6 +19,7 @@ export function DeviceToggle({
         type="button"
         size="sm"
         variant={value === "desktop" ? "secondary" : "outline"}
+        className={value === "desktop" ? "bg-white text-slate-900 border-slate-300" : undefined}
         onClick={() => onChange("desktop")}
       >
         Desktop
@@ -27,6 +28,7 @@ export function DeviceToggle({
         type="button"
         size="sm"
         variant={value === "mobile" ? "secondary" : "outline"}
+        className={value === "mobile" ? "bg-white text-slate-900 border-slate-300" : undefined}
         onClick={() => onChange("mobile")}
       >
         Mobile
@@ -34,4 +36,3 @@ export function DeviceToggle({
     </div>
   );
 }
-
