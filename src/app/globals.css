@@ -100,3 +100,16 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   color-scheme: light;
 }
+
+input,
+select,
+textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}

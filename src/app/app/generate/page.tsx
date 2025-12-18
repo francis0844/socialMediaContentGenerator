@@ -117,7 +117,7 @@ export default function GeneratePage() {
             <div className="space-y-2">
               <Label>Content type</Label>
               <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                 value={contentType}
                 onChange={(e) => setContentType(e.target.value as ContentType)}
               >
@@ -130,7 +130,7 @@ export default function GeneratePage() {
             <div className="space-y-2">
               <Label>Platform</Label>
               <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value as Platform)}
               >
@@ -156,7 +156,7 @@ export default function GeneratePage() {
             <div className="space-y-2">
               <Label>Tone</Label>
               <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                 value={tone}
                 onChange={(e) => setTone(e.target.value as Tone)}
               >
@@ -171,7 +171,7 @@ export default function GeneratePage() {
             <div className="space-y-2">
               <Label>Caption length</Label>
               <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                 value={captionLength}
                 onChange={(e) => setCaptionLength(e.target.value as CaptionLength)}
               >
@@ -188,7 +188,7 @@ export default function GeneratePage() {
               <div className="space-y-2">
                 <Label>Mode</Label>
                 <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   value={hashtagMode}
                   onChange={(e) => setHashtagMode(e.target.value as HashtagMode)}
                 >

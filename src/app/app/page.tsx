@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { BarChart3, Sparkles, Undo2, Users } from "lucide-react";
 
 import { useSession } from "next-auth/react";
 
 type UsageResponse = {
   ok: boolean;
   counts?: { generated: number; accepted: number; rejected: number };
+  platformCounts?: { facebook: number; instagram: number; pinterest: number; x: number };
   quota?:
     | {
         scope: "trial_daily";
@@ -109,22 +110,31 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-lg font-semibold text-slate-900">Platforms</div>
-            <Link href="/app/generate" className="text-sm font-semibold text-teal-600 hover:text-teal-700">
-              See more
-            </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {["Facebook", "Instagram", "Pinterest", "X"].map((platform) => (
+            {["facebook", "instagram", "pinterest", "x"].map((platform) => (
               <div
                 key={platform}
                 className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm"
               >
                 <div className="grid h-12 w-12 place-items-center rounded-full bg-teal-50 text-teal-600">
-                  <Sparkles className="h-5 w-5" />
+                  {platform === "facebook" ? (
+                    <Users className="h-5 w-5" />
+                  ) : platform === "instagram" ? (
+                    <Sparkles className="h-5 w-5" />
+                  ) : platform === "pinterest" ? (
+                    <Undo2 className="h-5 w-5" />
+                  ) : (
+                    <BarChart3 className="h-5 w-5" />
+                  )}
                 </div>
-                <div className="mt-3 text-base font-semibold text-slate-900">{platform}</div>
+                <div className="mt-3 text-base font-semibold text-slate-900">
+                  {platform === "x" ? "X" : platform.charAt(0).toUpperCase() + platform.slice(1)}
+                </div>
                 <div className="mt-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {loading ? "…" : `${usageData?.counts?.generated ?? 0} items`}
+                  {loading
+                    ? "…"
+                    : `${usageData?.platformCounts?.[platform as keyof NonNullable<UsageResponse["platformCounts"]>] ?? 0} items`}
                 </div>
               </div>
             ))}

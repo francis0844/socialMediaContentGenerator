@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageSquare,
   Search,
   Settings,
   Sparkles,
@@ -57,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const user = data?.user ?? null;
   const accountId = data?.accountId ?? null;
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -83,8 +83,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       { href: "/app/library/generated", label: "Generated", icon: <BookOpen className="h-4 w-4" /> },
       { href: "/app/library/accepted", label: "Accepted", icon: <CheckCircle2 className="h-4 w-4" /> },
       { href: "/app/library/rejected", label: "Rejected", icon: <Undo2 className="h-4 w-4" /> },
-      { href: "/app/brand", label: "Brand Profile", icon: <Users className="h-4 w-4" /> },
-      { href: "/app/billing", label: "Billing", icon: <CreditCard className="h-4 w-4" /> },
     ];
     return isAdmin
       ? [...base, { href: "/app/admin", label: "Admin", icon: <BarChart3 className="h-4 w-4" /> }]
@@ -140,11 +138,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="hidden rounded-lg border border-slate-200 bg-white p-2 text-slate-600 shadow-sm md:inline-flex">
-                <MessageSquare className="h-4 w-4" />
-              </button>
-              <button className="hidden rounded-lg border border-slate-200 bg-white p-2 text-slate-600 shadow-sm md:inline-flex">
+          <div className="flex items-center gap-2">
+              <button
+                className="hidden rounded-lg border border-slate-200 bg-white p-2 text-slate-600 shadow-sm md:inline-flex"
+                onClick={() => setShowSettings(true)}
+              >
                 <Settings className="h-4 w-4" />
               </button>
               <div className="hidden flex-col text-right text-xs text-slate-600 md:flex">
@@ -166,6 +164,44 @@ export function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
+
+      {showSettings ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-slate-800">Settings</div>
+                <div className="text-xs text-slate-500">Quick links for your account</div>
+              </div>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <Link
+                href="/app/brand"
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:border-teal-200 hover:bg-white"
+                onClick={() => setShowSettings(false)}
+              >
+                Brand Profile
+                <Users className="h-4 w-4 text-teal-600" />
+              </Link>
+              <Link
+                href="/app/billing"
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 hover:border-teal-200 hover:bg-white"
+                onClick={() => setShowSettings(false)}
+              >
+                Billing
+                <CreditCard className="h-4 w-4 text-teal-600" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

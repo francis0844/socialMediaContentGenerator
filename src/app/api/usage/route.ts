@@ -30,6 +30,25 @@ export async function GET() {
       }),
     ]);
 
+    const platforms = ["facebook", "instagram", "pinterest", "x"] as const;
+    const platformCounts: Record<(typeof platforms)[number], number> = {
+      facebook: 0,
+      instagram: 0,
+      pinterest: 0,
+      x: 0,
+    };
+
+    const platformCountsRaw = await prisma.generationRequest.groupBy({
+      by: ["platform"],
+      _count: true,
+      where: { accountId: account.id },
+    });
+    for (const row of platformCountsRaw) {
+      if (platforms.includes(row.platform as (typeof platforms)[number])) {
+        platformCounts[row.platform as (typeof platforms)[number]] = row._count;
+      }
+    }
+
     const trialActive = isTrialActive(account.trialEndsAt);
     const trialDaysLeft = account.trialEndsAt
       ? Math.max(
@@ -59,6 +78,7 @@ export async function GET() {
         accepted: acceptedCount,
         rejected: rejectedCount,
       },
+      platformCounts,
       quota: trialActive
         ? {
             scope: "trial_daily",
