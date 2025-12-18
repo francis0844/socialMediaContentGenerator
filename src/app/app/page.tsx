@@ -52,60 +52,60 @@ export default function DashboardPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-white/70">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-600">
             Generate content, review, and teach the studio what “on-brand” means for{" "}
-            <span className="text-white">your account</span>.
+            <span className="text-slate-900 font-semibold">your account</span>.
           </p>
         </div>
-        <div className="text-sm text-white/60">
+        <div className="text-sm text-slate-500">
           {status === "loading" ? "Loading…" : null}
         </div>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-medium text-slate-600">
             {usageData?.quota?.scope === "trial_daily"
               ? "Trial (daily quota)"
               : "This month"}
           </div>
-          <div className="mt-2 text-2xl font-semibold">
+          <div className="mt-2 text-3xl font-semibold text-slate-900">
             {loading
               ? "…"
               : `${usageData?.quota?.used ?? 0} / ${usageData?.quota?.limit ?? 0}`}
           </div>
-          <div className="mt-1 text-sm text-white/60">Generations used</div>
+          <div className="mt-1 text-sm text-slate-500">Generations used</div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">Libraries</div>
-          <div className="mt-2 text-sm text-white/70">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-medium text-slate-600">Libraries</div>
+          <div className="mt-2 text-sm text-slate-600">
             Generated:{" "}
-            <span className="text-white">
+            <span className="font-semibold text-slate-900">
               {loading ? "…" : (usageData?.counts?.generated ?? 0)}
             </span>
             <br />
             Accepted:{" "}
-            <span className="text-white">
+            <span className="font-semibold text-slate-900">
               {loading ? "…" : (usageData?.counts?.accepted ?? 0)}
             </span>
             <br />
             Rejected:{" "}
-            <span className="text-white">
+            <span className="font-semibold text-slate-900">
               {loading ? "…" : (usageData?.counts?.rejected ?? 0)}
             </span>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">Access</div>
-          <div className="mt-2 text-sm text-white/70">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-medium text-slate-600">Access</div>
+          <div className="mt-2 text-sm text-slate-600">
             Status:{" "}
-            <span className="text-white">
+            <span className="font-semibold text-slate-900">
               {loading ? "…" : (usageData?.billingStatus ?? "trialing")}
             </span>
             <br />
             Trial:{" "}
-            <span className="text-white">
+            <span className="font-semibold text-slate-900">
               {daysLeft === null
                 ? "—"
                 : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`}
@@ -114,7 +114,7 @@ export default function DashboardPage() {
           <div className="mt-3">
             <Link
               href="/app/billing"
-              className="inline-flex rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
             >
               Manage billing
             </Link>
@@ -125,13 +125,13 @@ export default function DashboardPage() {
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/app/generate"
-          className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
         >
           Generate content
         </Link>
         <Link
           href="/app/brand"
-          className="rounded-full border border-white/20 px-5 py-2.5 text-sm hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
         >
           Update brand profile
         </Link>

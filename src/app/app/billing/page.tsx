@@ -88,8 +88,8 @@ export default function BillingPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Billing</h1>
-          <p className="mt-1 text-sm text-white/70">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Billing</h1>
+          <p className="mt-1 text-sm text-slate-600">
             Full Access: $120/month • 1000 generations per month
           </p>
         </div>
@@ -99,40 +99,40 @@ export default function BillingPage() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">Status</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-sm text-slate-600">Status</div>
           <div className="mt-2 flex items-center gap-2">
             <span
               className={cn(
                 "rounded-full border px-3 py-1 text-xs",
                 isActive
-                  ? "border-green-500/30 bg-green-500/10 text-green-200"
-                  : "border-white/15 bg-white/5 text-white/80",
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-slate-200 bg-slate-50 text-slate-800",
               )}
             >
               {loading ? "…" : billingStatus}
             </span>
             {trialActive ? (
-              <span className="text-xs text-white/60">
+              <span className="text-xs text-slate-500">
                 Trial: {usage?.trialDaysLeft ?? "—"} days left
               </span>
             ) : null}
           </div>
 
-          <div className="mt-4 text-sm text-white/70">
+          <div className="mt-4 text-sm text-slate-600">
             {loading ? (
               "Loading…"
             ) : usage?.quota?.scope === "trial_daily" ? (
               <>
                 Trial daily quota:{" "}
-                <span className="text-white">
+                <span className="text-slate-900">
                   {usage.quota.used} / {usage.quota.limit}
                 </span>
               </>
             ) : (
               <>
                 Monthly quota:{" "}
-                <span className="text-white">
+                <span className="text-slate-900">
                   {usage?.quota?.used ?? 0} / {usage?.quota?.limit ?? 1000}
                 </span>
               </>
@@ -140,8 +140,8 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-          <div className="text-sm text-white/70">Manage</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-sm text-slate-600">Manage</div>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Button onClick={startCheckout} disabled={actionLoading}>
@@ -152,13 +152,13 @@ export default function BillingPage() {
             </Button>
           </div>
 
-          <div className="mt-3 text-xs text-white/60">
+          <div className="mt-3 text-xs text-slate-500">
             Trial does not require payment. When trial ends, generation is blocked until
             you subscribe.
           </div>
 
           {message ? (
-            <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {message}
             </div>
           ) : null}
@@ -166,7 +166,7 @@ export default function BillingPage() {
       </div>
 
       {!loading && !trialActive && !isActive ? (
-        <div className="mt-6 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Your trial has ended. Subscribe to continue generating content.
         </div>
       ) : null}

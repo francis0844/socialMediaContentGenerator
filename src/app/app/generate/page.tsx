@@ -87,11 +87,11 @@ export default function GeneratePage() {
   }
 
   return (
-    <div>
+    <div className="text-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Generate</h1>
-          <p className="mt-1 text-sm text-white/70">
+          <h1 className="text-2xl font-semibold tracking-tight">Generate</h1>
+          <p className="mt-1 text-sm text-slate-600">
             Create platform-ready content. Outputs are saved to the Generated library.
           </p>
         </div>
@@ -101,10 +101,10 @@ export default function GeneratePage() {
       </div>
 
       {error ? (
-        <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
           {result && "missing" in result && result.missing?.length ? (
-            <div className="mt-2 text-xs text-red-200/90">
+            <div className="mt-2 text-xs text-red-600">
               Missing brand profile fields: {result.missing.join(", ")}
             </div>
           ) : null}
@@ -182,8 +182,8 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-            <div className="text-sm text-white/70">Hashtags</div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-sm font-semibold text-slate-800">Hashtags</div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Mode</Label>
@@ -207,7 +207,7 @@ export default function GeneratePage() {
                 />
               </div>
             </div>
-            <div className="mt-2 text-xs text-white/60">
+            <div className="mt-2 text-xs text-slate-600">
               Hashtags are supported on all platforms.
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function GeneratePage() {
           {result && result.ok ? (
             <PreviewSwitcher outputJson={result.content.output} initialPlatform={platform} />
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-black/40 p-4 text-sm text-white/60">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
               Generate to see a preview here.
             </div>
           )}

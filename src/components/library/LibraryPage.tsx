@@ -154,11 +154,11 @@ export function LibraryPage({ status }: { status: Status }) {
   }
 
   return (
-    <div>
+    <div className="text-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm text-white/70">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
+          <p className="mt-1 text-sm text-slate-600">
             {status === "generated"
               ? "Review content and accept or reject with a reason."
               : "Browse your library. You can undo back to Generated."}
@@ -169,7 +169,7 @@ export function LibraryPage({ status }: { status: Status }) {
         </Button>
       </div>
 
-      <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/40 p-4 md:grid-cols-4">
+      <div className="mt-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4">
         <div className="space-y-2">
           <Label>Platform</Label>
           <select
@@ -209,26 +209,26 @@ export function LibraryPage({ status }: { status: Status }) {
       </div>
 
       {error ? (
-        <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       ) : null}
 
       <div className="mt-6 space-y-3">
         {loading ? (
-          <div className="text-sm text-white/70">Loading…</div>
+          <div className="text-sm text-slate-600">Loading…</div>
         ) : items.length ? (
           items.map((i) => (
-            <div key={i.id} className="rounded-2xl border border-white/10 bg-black/40 p-4">
+            <div key={i.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <button
                     onClick={() => openPreview(i)}
-                    className="text-left text-sm text-white underline-offset-4 hover:underline"
+                    className="text-left text-sm font-semibold text-slate-900 underline-offset-4 hover:underline"
                   >
                     {i.title ?? `${i.contentType} • ${i.platform}`}
                   </button>
-                  <div className="mt-1 text-xs text-white/60">
+                  <div className="mt-1 text-xs text-slate-500">
                     {new Date(i.createdAt).toLocaleString()} • {i.platform} • {i.contentType}
                   </div>
                 </div>
@@ -248,25 +248,25 @@ export function LibraryPage({ status }: { status: Status }) {
               </div>
 
               {i.caption ? (
-                <pre className="mt-4 whitespace-pre-wrap text-sm text-white/80">{i.caption}</pre>
+                <pre className="mt-4 whitespace-pre-wrap text-sm text-slate-700">{i.caption}</pre>
               ) : null}
             </div>
           ))
         ) : (
-          <div className="text-sm text-white/60">No items yet.</div>
+          <div className="text-sm text-slate-600">No items yet.</div>
         )}
       </div>
 
       {previewOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 sm:px-6">
-          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black p-6 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="text-sm text-white/70">Preview</div>
-                <div className="mt-1 text-sm text-white">
+                <div className="text-sm text-slate-600">Preview</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900">
                   {selected.title ?? `${selected.contentType} • ${selected.platform}`}
                 </div>
-                <div className="mt-1 text-xs text-white/60 break-all">{selected.id}</div>
+                <div className="mt-1 break-all text-xs text-slate-500">{selected.id}</div>
               </div>
               <Button variant="outline" onClick={() => setPreviewOpen(false)}>
                 Close
@@ -300,11 +300,11 @@ export function LibraryPage({ status }: { status: Status }) {
 
       {decisionOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black p-6">
-            <div className="text-sm text-white/70">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="text-sm text-slate-600">
               {decision === "accept" ? "Accept" : "Reject"} — reason required
             </div>
-            <div className="mt-2 text-sm text-white">
+            <div className="mt-2 text-sm font-semibold text-slate-900">
               {selected.title ?? `${selected.contentType} • ${selected.platform}`}
             </div>
 
@@ -321,7 +321,7 @@ export function LibraryPage({ status }: { status: Status }) {
             />
 
             {aiResponse ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
                 {aiResponse}
               </div>
             ) : null}
@@ -343,11 +343,11 @@ export function LibraryPage({ status }: { status: Status }) {
 
       {undoOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black p-6">
-            <div className="text-sm text-white/70">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="text-sm text-slate-600">
               Move back to Generated — this will revert the learning snapshot
             </div>
-            <div className="mt-2 text-sm text-white">
+            <div className="mt-2 text-sm font-semibold text-slate-900">
               {selected.title ?? `${selected.contentType} • ${selected.platform}`}
             </div>
 
