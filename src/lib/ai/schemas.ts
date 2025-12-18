@@ -1,5 +1,3 @@
-import "server-only";
-
 import { z } from "zod";
 
 export const socialPlatformSchema = z.enum(["facebook", "instagram", "pinterest", "x"]);

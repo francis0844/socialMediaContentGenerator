@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PreviewSwitcher } from "@/components/previews/PreviewSwitcher";
 
 type ContentType = "graphic" | "story" | "text" | "video";
 type Platform = "facebook" | "instagram" | "pinterest" | "x";
@@ -234,36 +235,15 @@ export default function GeneratePage() {
             <Input value={cta} onChange={(e) => setCta(e.target.value)} placeholder="Shop now, Learn more, DM us…" />
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-            <div className="text-sm text-white/70">Preview</div>
-            {result && result.ok ? (
-              <div className="mt-3 space-y-3">
-                {result.content.title ? (
-                  <div className="text-sm text-white">{result.content.title}</div>
-                ) : null}
-                {result.content.caption ? (
-                  <pre className="text-sm whitespace-pre-wrap text-white/80">
-                    {result.content.caption}
-                  </pre>
-                ) : null}
-                <details className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                  <summary className="cursor-pointer text-sm text-white/80">
-                    Raw JSON
-                  </summary>
-                  <pre className="mt-2 overflow-auto text-xs text-white/70">
-                    {JSON.stringify(result.content.output, null, 2)}
-                  </pre>
-                </details>
-              </div>
-            ) : (
-              <div className="mt-3 text-sm text-white/60">
-                Generate to see a preview here.
-              </div>
-            )}
-          </div>
+          {result && result.ok ? (
+            <PreviewSwitcher outputJson={result.content.output} initialPlatform={platform} />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-black/40 p-4 text-sm text-white/60">
+              Generate to see a preview here.
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PreviewSwitcher } from "@/components/previews/PreviewSwitcher";
 
 type Status = "generated" | "accepted" | "rejected";
 type Platform = "" | "facebook" | "instagram" | "pinterest" | "x";
@@ -272,18 +273,12 @@ export function LibraryPage({ status }: { status: Status }) {
               </Button>
             </div>
 
-            {selected.caption ? (
-              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/80">
-                {selected.caption}
-              </pre>
-            ) : null}
-
-            <details className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-              <summary className="cursor-pointer text-sm text-white/80">Raw JSON</summary>
-              <pre className="mt-3 max-h-[300px] overflow-auto text-xs text-white/70">
-                {JSON.stringify(selected.output, null, 2)}
-              </pre>
-            </details>
+            <div className="mt-4">
+              <PreviewSwitcher
+                outputJson={selected.output}
+                initialPlatform={selected.platform as "facebook" | "instagram" | "pinterest" | "x"}
+              />
+            </div>
 
             {selected.status === "generated" ? (
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
@@ -378,4 +373,3 @@ export function LibraryPage({ status }: { status: Status }) {
     </div>
   );
 }
-
