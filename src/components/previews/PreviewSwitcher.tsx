@@ -26,7 +26,7 @@ export function PreviewSwitcher({
   outputJson,
   initialPlatform,
   initialDevice = "desktop",
-  initialTheme = "dark",
+  initialTheme = "light",
   brandProfile,
   className,
 }: {
@@ -41,9 +41,11 @@ export function PreviewSwitcher({
 
   const output: PreviewOutput | null = parsed.success ? parsed.data : null;
 
-  const [platform, setPlatform] = useState<PreviewPlatform>(
-    initialPlatform ?? output?.platform ?? "instagram",
-  );
+  const availablePlatforms: PreviewPlatform[] =
+    (initialPlatform ? [initialPlatform] : output?.platform ? [output.platform] : null) ??
+    ["facebook", "instagram", "pinterest", "x"];
+
+  const [platform, setPlatform] = useState<PreviewPlatform>(availablePlatforms[0]);
   const [device, setDevice] = useState<PreviewDevice>(initialDevice);
   const [theme, setTheme] = useState<PreviewTheme>(initialTheme);
 
@@ -74,10 +76,18 @@ export function PreviewSwitcher({
     }
   }, [brand, device, output, platform, theme]);
 
+  const containerStyles =
+    theme === "light"
+      ? "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900"
+      : "rounded-2xl border border-white/10 bg-black/40 p-4 text-white";
+
+  const summaryText = theme === "light" ? "text-slate-700" : "text-white/80";
+  const jsonText = theme === "light" ? "text-slate-700" : "text-white/70";
+
   return (
-    <div className={cn("rounded-2xl border border-white/10 bg-black/40 p-4", className)}>
+    <div className={cn(containerStyles, className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-white/70">Preview</div>
+        <div className="text-sm opacity-80">Preview</div>
         <div className="flex flex-wrap items-center gap-2">
           <ThemeToggle value={theme} onChange={setTheme} />
           <DeviceToggle value={device} onChange={setDevice} />
@@ -86,31 +96,48 @@ export function PreviewSwitcher({
 
       {output ? (
         <div className="mt-3 space-y-3">
-          <PlatformToggle
-            value={platform}
-            onChange={(p) => {
-              setPlatform(p);
-            }}
-          />
+          {availablePlatforms.length > 1 ? (
+            <PlatformToggle
+              value={platform}
+              options={availablePlatforms}
+              onChange={(p) => {
+                setPlatform(p);
+              }}
+            />
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+              {availablePlatforms[0].charAt(0).toUpperCase() + availablePlatforms[0].slice(1)}
+            </div>
+          )}
 
           <div className="w-full">
             {device === "mobile" ? <DeviceFrame>{preview}</DeviceFrame> : preview}
           </div>
 
-          <details className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-            <summary className="cursor-pointer text-sm text-white/80">Raw JSON</summary>
-            <pre className="mt-2 overflow-auto text-xs text-white/70">
+          <details
+            className={cn(
+              "rounded-xl border px-3 py-2",
+              theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5",
+            )}
+          >
+            <summary className={cn("cursor-pointer text-sm", summaryText)}>Raw JSON</summary>
+            <pre className={cn("mt-2 overflow-auto text-xs", jsonText)}>
               {JSON.stringify(outputJson, null, 2)}
             </pre>
           </details>
         </div>
       ) : (
-        <div className="mt-3 text-sm text-white/60">
+        <div className="mt-3 text-sm opacity-70">
           {parsed.success ? "No output to preview." : "Invalid output JSON (schema mismatch)."}
           {!parsed.success ? (
-            <details className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-              <summary className="cursor-pointer text-sm text-white/80">Raw JSON</summary>
-              <pre className="mt-2 overflow-auto text-xs text-white/70">
+            <details
+              className={cn(
+                "mt-3 rounded-xl border px-3 py-2",
+                theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5",
+              )}
+            >
+              <summary className={cn("cursor-pointer text-sm", summaryText)}>Raw JSON</summary>
+              <pre className={cn("mt-2 overflow-auto text-xs", jsonText)}>
                 {JSON.stringify(outputJson, null, 2)}
               </pre>
             </details>

@@ -14,21 +14,25 @@ const platformLabel: Record<PreviewPlatform, string> = {
 export function PlatformToggle({
   value,
   onChange,
+  options,
   className,
 }: {
   value: PreviewPlatform;
   onChange: (v: PreviewPlatform) => void;
+  options?: PreviewPlatform[];
   className?: string;
 }) {
+  const list = options && options.length ? options : (Object.keys(platformLabel) as Array<PreviewPlatform>);
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      {(Object.keys(platformLabel) as Array<PreviewPlatform>).map((p) => (
+      {list.map((p) => (
         <Button
           key={p}
           type="button"
           size="sm"
           variant={value === p ? "secondary" : "outline"}
           onClick={() => onChange(p)}
+          disabled={list.length === 1}
         >
           {platformLabel[p]}
         </Button>
@@ -36,4 +40,3 @@ export function PlatformToggle({
     </div>
   );
 }
-

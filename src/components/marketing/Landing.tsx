@@ -16,19 +16,12 @@ export function Landing() {
             Lexus
           </div>
           <div className="flex items-center gap-3">
-            {loading ? null : user ? (
+            {loading ? null : (
               <Link
-                href="/app"
+                href={user ? "/app" : "/login"}
                 className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
               >
-                Open Studio
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
-              >
-                Sign in
+                {user ? "Open Studio" : "Sign in"}
               </Link>
             )}
           </div>
@@ -50,16 +43,16 @@ export function Landing() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/login"
+                href={user ? "/app" : "/login"}
                 className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
               >
-                Start 3-day trial
+                {user ? "Open Studio" : "Start 3-day trial"}
               </Link>
               <Link
-                href="/login"
+                href={user ? "/app" : "/login"}
                 className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
               >
-                Sign in
+                {user ? "Go to app" : "Sign in"}
               </Link>
             </div>
 

@@ -167,7 +167,7 @@ export function LibraryPage({ status }: { status: Status }) {
         <Button
           variant="outline"
           onClick={load}
-          className="border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
+          className="border-slate-200 bg-white text-slate-800 hover:bg-teal-50 hover:text-teal-700"
         >
           Refresh
         </Button>
