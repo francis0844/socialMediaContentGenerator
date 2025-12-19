@@ -126,6 +126,9 @@ model Account {
   generatedContent   GeneratedContent[]
   feedback           Feedback[]
   aiMemory           AiMemory?
+  mediaAssets        MediaAsset[]
+  uploadedImageReferences UploadedImageReference[]
+  imageJobs          ImageJob[]
 
   @@index([billingCustomerId])
   @@index([billingSubscriptionId])
@@ -192,16 +195,98 @@ model GeneratedContent {
   imageStatus     ImageStatus   @default(none)
   imageUrl        String?
   imageModel      String?
-  imageAspectRatio String? @default("1:1")
+  imagePrompt     String?
+  imageAspectRatio String?      @default("1:1")
+  imageVariantsRequested Int     @default(1)
   imageError      String?
+  imageModelId    String?
+  primaryImageAssetId String?
   createdAt       DateTime      @default(now())
 
   account  Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
   request  GenerationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  primaryImageAsset MediaAsset? @relation("PrimaryGeneratedImage", fields: [primaryImageAssetId], references: [id])
   feedback Feedback[]
+  imageJobs ImageJob[]
 
   @@index([accountId, status, createdAt])
   @@index([requestId])
+}
+
+enum MediaAssetType {
+  LOGO
+  PRODUCT_MOCKUP
+  STYLE_MIMIC
+  GENERATED_IMAGE
+}
+
+enum StorageProvider {
+  CLOUDINARY
+  S3
+}
+
+enum UploadedImageKind {
+  PRODUCT_MOCKUP
+  STYLE_MIMIC
+  LOGO_OVERRIDE
+}
+
+model MediaAsset {
+  id               String          @id @default(uuid())
+  accountId        String
+  type             MediaAssetType
+  storageProvider  StorageProvider
+  url              String
+  thumbnailUrl     String?
+  mimeType         String
+  width            Int?
+  height           Int?
+  createdAt        DateTime        @default(now())
+
+  account          Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  uploadedReferences UploadedImageReference[]
+  generatedContents GeneratedContent[] @relation("PrimaryGeneratedImage")
+
+  @@index([accountId, type, createdAt])
+}
+
+model UploadedImageReference {
+  id           String            @id @default(uuid())
+  accountId    String
+  mediaAssetId String
+  label        String
+  kind         UploadedImageKind
+  createdAt    DateTime          @default(now())
+
+  account    Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, kind, createdAt])
+  @@index([mediaAssetId])
+}
+
+enum ImageJobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model ImageJob {
+  id                 String           @id @default(uuid())
+  accountId          String
+  generatedContentId String
+  status             ImageJobStatus   @default(QUEUED)
+  attempts           Int              @default(0)
+  lastError          String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  account           Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  generatedContent  GeneratedContent @relation(fields: [generatedContentId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, status, createdAt])
+  @@index([generatedContentId])
 }
 
 model Feedback {
