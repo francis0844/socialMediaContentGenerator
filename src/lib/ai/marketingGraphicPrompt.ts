@@ -58,7 +58,7 @@ export function buildMarketingGraphicPrompt(input: MarketingPromptInput) {
     "Layout guidance: keep safe margins; avoid text touching edges; ensure legible contrast between text and background; place CTA with clear separation.",
     "If product/mockup images exist, feature them prominently.",
     "Mimic the composition/typography vibe of style samples without copying logos or trademarks.",
-    "No NSFW or unsafe content.",
+    "No NSFW, explicit, or unsafe content.",
   ]
     .filter(Boolean)
     .join("\n");

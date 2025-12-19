@@ -11,9 +11,9 @@ import { log } from "@/lib/observability/log";
 import { uploadImageBuffer } from "@/lib/uploads/uploadImageBuffer";
 import { buildMarketingGraphicPrompt } from "@/lib/ai/marketingGraphicPrompt";
 import type { GraphicOutput } from "@/types/imagePromptTypes";
+import { appConfig } from "@/lib/config";
 
 const QUEUE_KEY = "image:queue";
-const MAX_ATTEMPTS = 3;
 
 function getRedis() {
   const env = getServerEnv();
@@ -49,7 +49,7 @@ async function processJob(jobId: string) {
   });
   if (!job) return;
   if (job.status === "SUCCEEDED") return;
-  if (job.attempts >= MAX_ATTEMPTS) return;
+  if (job.attempts >= appConfig.queue.maxAttempts) return;
 
   const content = job.generatedContent;
   if (!content || content.imageStatus === "ready") return;
@@ -131,7 +131,7 @@ async function processJob(jobId: string) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "IMAGE_JOB_FAILED";
     log("error", "image.job.failed", { jobId, error: message });
-    const failed = attempt >= MAX_ATTEMPTS;
+    const failed = attempt >= appConfig.queue.maxAttempts;
 
     await prisma.imageJob.update({
       where: { id: jobId },
@@ -152,7 +152,10 @@ async function processJob(jobId: string) {
     if (!failed) {
       const redis = getRedis();
       if (redis) {
-        const delay = Math.min(30000, 2000 * attempt * attempt);
+        const delay = Math.min(
+          appConfig.queue.backoffMaxMs,
+          appConfig.queue.backoffBaseMs * attempt * attempt,
+        );
         setTimeout(() => {
           redis.rpush(QUEUE_KEY, jobId).catch(() => {});
         }, delay);

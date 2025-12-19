@@ -7,6 +7,11 @@ export type GeneratingItem = {
 type Updater = (id: string, update: { imageStatus: string; primaryImageUrl?: string | null; imageError?: string | null }) => void;
 
 export function useImageStatusPoller(items: GeneratingItem[], updateItem: Updater) {
+  const fastTicks = 15;
+  const maxTicks = 40;
+  const fastMs = 2000;
+  const slowMs = 5000;
+
   useEffect(() => {
     let cancelled = false;
     let attempt = 0;
@@ -36,8 +41,8 @@ export function useImageStatusPoller(items: GeneratingItem[], updateItem: Update
         }
       }
       attempt += 1;
-      if (attempt > 39) return; // stop after ~2 minutes
-      const delay = attempt < 15 ? 2000 : 5000;
+      if (attempt > maxTicks - 1) return; // stop after ~2 minutes
+      const delay = attempt < fastTicks ? fastMs : slowMs;
       timer = setTimeout(tick, delay);
     };
 
