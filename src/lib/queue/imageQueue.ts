@@ -118,6 +118,8 @@ async function processJob(jobId: string) {
       data: {
         imageStatus: "ready",
         primaryImageAssetId: media.id,
+        imageUrl: uploaded.secure_url,
+        imageModel: client.modelId,
         imageModelId: client.modelId,
         imagePrompt: prompt,
         imageError: null,

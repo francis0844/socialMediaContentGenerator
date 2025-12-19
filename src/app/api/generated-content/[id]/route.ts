@@ -3,11 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireVerifiedSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 
-export async function GET(_: NextRequest, context: any) {
+export async function GET(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireVerifiedSession();
-    const id = context?.params?.id as string;
-    if (!id) return NextResponse.json({ ok: false, error: "ID_REQUIRED" }, { status: 400 });
+    const { id } = await ctx.params;
+    if (!id) {
+      return NextResponse.json({ ok: false, error: "ID_REQUIRED" }, { status: 400 });
+    }
     const content = await prisma.generatedContent.findUnique({
       where: { id },
       select: {

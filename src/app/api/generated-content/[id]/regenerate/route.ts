@@ -17,10 +17,13 @@ const bodySchema = z.object({
   aspectRatio: z.enum(["1:1", "4:5", "9:16"]).optional().nullable(),
 });
 
-export async function POST(req: NextRequest, context: any) {
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireVerifiedSession();
-    const id = context?.params?.id as string;
+    const { id } = await ctx.params;
+    if (!id) {
+      return NextResponse.json({ ok: false, error: "ID_REQUIRED" }, { status: 400 });
+    }
     const body = await req.json().catch(() => ({}));
     const parsed = bodySchema.parse(body);
 
