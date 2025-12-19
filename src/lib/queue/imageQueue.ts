@@ -9,6 +9,8 @@ import { prisma } from "@/lib/db";
 import { getServerEnv } from "@/lib/env/server";
 import { log } from "@/lib/observability/log";
 import { uploadImageBuffer } from "@/lib/uploads/uploadImageBuffer";
+import { buildMarketingGraphicPrompt } from "@/lib/ai/marketingGraphicPrompt";
+import type { GraphicOutput } from "@/types/imagePromptTypes";
 
 const QUEUE_KEY = "image:queue";
 const MAX_ATTEMPTS = 3;
@@ -51,6 +53,7 @@ async function processJob(jobId: string) {
 
   const content = job.generatedContent;
   if (!content || content.imageStatus === "ready") return;
+  if (content.request.contentType !== "graphic") return;
 
   const attempt = job.attempts + 1;
   await prisma.imageJob.update({
@@ -59,8 +62,36 @@ async function processJob(jobId: string) {
   });
 
   try {
-    const output = content.output as any;
-    const prompt = buildImagePrompt(output, content.accountId);
+    const output = content.output as GraphicOutput;
+    const reqDir = content.request.direction as any;
+
+    const brand = await prisma.brandProfile.findUnique({ where: { accountId: content.accountId } });
+    const prompt = buildMarketingGraphicPrompt({
+      brand: {
+        name: brand?.brandName ?? "Brand",
+        niche: brand?.niche,
+        targetAudience: brand?.targetAudience,
+        goals: brand?.goals,
+        colors: (brand?.colorsJson as any) ?? null,
+        voice: brand?.voiceMode ? `voice:${brand.voiceMode}` : null,
+      },
+      content: {
+        ...output,
+        mainMessage: reqDir?.mainMessage ?? "",
+        cta: reqDir?.cta ?? null,
+        keywordsAvoid: reqDir?.keywordsAvoid ?? null,
+        platform: output.platform,
+      },
+      imageIdea: reqDir?.imageIdea ?? null,
+      aspectRatio: reqDir?.aspectRatio ?? "1:1",
+      useBrandLogo: reqDir?.useBrandLogo ?? true,
+      references: (reqDir?.references as any)?.map((r: any) => ({
+        label: r.label ?? "",
+        kind: r.kind ?? "",
+      })),
+      styleMimics: (reqDir?.references as any)?.filter((r: any) => r.kind === "STYLE_MIMIC"),
+    });
+
     const client = getGeminiImageClient();
     const result = await client.generate({
       prompt,

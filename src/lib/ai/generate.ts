@@ -35,6 +35,19 @@ const directionSchema = z.object({
   keywordsInclude: z.string().optional().nullable(),
   keywordsAvoid: z.string().optional().nullable(),
   cta: z.string().optional().nullable(),
+  imageIdea: z.string().optional().nullable(),
+  aspectRatio: z.enum(["1:1", "4:5", "9:16"]).optional().nullable(),
+  useBrandLogo: z.boolean().optional().nullable(),
+  references: z
+    .array(
+      z.object({
+        mediaAssetId: z.string().min(1),
+        label: z.string().min(1),
+        kind: z.enum(["PRODUCT_MOCKUP", "STYLE_MIMIC", "LOGO_OVERRIDE"]),
+      }),
+    )
+    .optional()
+    .nullable(),
 });
 
 export type GenerationInput = {
