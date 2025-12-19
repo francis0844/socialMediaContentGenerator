@@ -122,7 +122,7 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-slate-600">Manage brand profile and billing.</p>
       </div>
 
-      <div className="grid gap-6 rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-[220px,1fr]">
+      <div className="grid gap-0 rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-[240px,1fr]">
         <div className="border-b border-slate-200 bg-slate-50 p-4 md:border-b-0 md:border-r">
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Sections</div>
           <div className="mt-3 space-y-2">
