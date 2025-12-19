@@ -1,14 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 
-type RouteParams = { params: { id: string } };
-
-export async function DELETE(_req: Request, { params }: RouteParams) {
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireSession();
-    const id = params.id;
+    const { id } = await ctx.params;
 
     const content = await prisma.generatedContent.findFirst({
       where: { id, accountId: session.accountId },
