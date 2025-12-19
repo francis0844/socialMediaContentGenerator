@@ -11,11 +11,13 @@ export function InstagramStoryPreview({
   brand,
   device,
   theme,
+  imageUrl,
 }: {
   output: PreviewOutput;
   brand: BrandPreviewProfile | null;
   device: PreviewDevice;
   theme: PreviewTheme;
+  imageUrl?: string | null;
 }) {
   const name = brand?.brandName || "Lexus";
   const username = toHandle(name).slice(1);
@@ -38,7 +40,7 @@ export function InstagramStoryPreview({
           brand={brand}
           theme={theme}
           aspect="vertical"
-          overlayText={null}
+          imageUrl={output.type === "graphic" ? imageUrl : null}
           className="rounded-2xl"
         />
       </div>
@@ -107,4 +109,3 @@ export function InstagramStoryPreview({
     </div>
   );
 }
-

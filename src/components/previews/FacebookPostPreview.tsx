@@ -12,11 +12,13 @@ export function FacebookPostPreview({
   brand,
   device,
   theme,
+  imageUrl,
 }: {
   output: PreviewOutput;
   brand: BrandPreviewProfile | null;
   device: PreviewDevice;
   theme: PreviewTheme;
+  imageUrl?: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const name = brand?.brandName || "Lexus";
@@ -24,7 +26,6 @@ export function FacebookPostPreview({
   const src = brand?.logoUrl || "/lexus-mark.svg";
 
   const hasMedia = output.type === "graphic" || output.type === "video" || output.type === "story";
-  const overlay = output.type === "graphic" ? output.visual_concept : null;
   const fullCaption = formatCaptionWithHashtags(output);
   const max = device === "mobile" ? 200 : 260;
   const showSeeMore = fullCaption.length > max;
@@ -88,8 +89,23 @@ export function FacebookPostPreview({
             brand={brand}
             theme={theme}
             aspect={output.type === "story" || output.type === "video" ? "vertical" : "square"}
-            overlayText={overlay}
+            imageUrl={output.type === "graphic" ? imageUrl : null}
           />
+          {output.type === "graphic" && output.visual_concept ? (
+            <div
+              className={cn(
+                "mt-2 rounded-lg border px-3 py-2 text-xs",
+                theme === "light"
+                  ? "border-slate-200 bg-slate-50 text-slate-600"
+                  : "border-white/10 bg-white/5 text-white/70",
+              )}
+            >
+              <div className={cn("text-[10px] uppercase tracking-wide", theme === "light" ? "text-slate-500" : "text-white/60")}>
+                Visual concept
+              </div>
+              <div className="mt-1">{output.visual_concept}</div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

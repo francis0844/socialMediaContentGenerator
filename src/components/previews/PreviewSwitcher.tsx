@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 
 export function PreviewSwitcher({
   outputJson,
+  imageUrl,
   initialPlatform,
   initialDevice = "desktop",
   initialTheme = "light",
@@ -31,6 +32,7 @@ export function PreviewSwitcher({
   className,
 }: {
   outputJson: unknown;
+  imageUrl?: string | null;
   initialPlatform?: PreviewPlatform;
   initialDevice?: PreviewDevice;
   initialTheme?: PreviewTheme;
@@ -60,7 +62,7 @@ export function PreviewSwitcher({
 
   const preview = useMemo(() => {
     if (!output) return null;
-    const props = { output, brand, device, theme };
+    const props = { output, brand, device, theme, imageUrl };
 
     switch (platform) {
       case "facebook":

@@ -17,13 +17,13 @@ export function MediaPlaceholder({
   brand,
   theme,
   aspect = "square",
-  overlayText,
+  imageUrl,
   className,
 }: {
   brand: BrandPreviewProfile | null;
   theme: PreviewTheme;
   aspect?: "square" | "vertical" | "pin";
-  overlayText?: string | null;
+  imageUrl?: string | null;
   className?: string;
 }) {
   const bg = getGradient(brand?.colors ?? null);
@@ -46,6 +46,14 @@ export function MediaPlaceholder({
       )}
       style={{ backgroundImage: bg }}
     >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt="Generated preview"
+          className="absolute inset-0 h-full w-full object-contain bg-slate-100"
+        />
+      ) : null}
+
       <div
         className={cn(
           "absolute inset-0",
@@ -53,48 +61,31 @@ export function MediaPlaceholder({
         )}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <img
-            src={src}
-            alt={brand?.brandName ? `${brand.brandName} logo` : "Logo"}
-            className={cn(
-              "h-14 w-14 rounded-full object-contain",
-              theme === "light" ? "bg-white/70" : "bg-black/30",
-            )}
-          />
-          <div
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs",
-              theme === "light"
-                ? "bg-white/70 text-black/70"
-                : "bg-black/30 text-white/80",
-            )}
-          >
-            <ImageIcon className={cn("h-3.5 w-3.5", theme === "light" ? "text-black/60" : "text-white/70")} />
-            Mock image
-          </div>
-        </div>
-      </div>
-
-      {overlayText ? (
-        <div className="absolute inset-x-0 bottom-0 p-3">
-          <div
-            className={cn(
-              "rounded-lg px-3 py-2 text-xs leading-snug backdrop-blur",
-              theme === "light"
-                ? "bg-white/75 text-black/80"
-                : "bg-black/45 text-white/85",
-            )}
-          >
-            <div className={cn("text-[10px] uppercase tracking-wide", theme === "light" ? "text-black/50" : "text-white/60")}>
-              Visual concept
+      {!imageUrl ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <img
+              src={src}
+              alt={brand?.brandName ? `${brand.brandName} logo` : "Logo"}
+              className={cn(
+                "h-14 w-14 rounded-full object-contain",
+                theme === "light" ? "bg-white/70" : "bg-black/30",
+              )}
+            />
+            <div
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs",
+                theme === "light"
+                  ? "bg-white/70 text-black/70"
+                  : "bg-black/30 text-white/80",
+              )}
+            >
+              <ImageIcon className={cn("h-3.5 w-3.5", theme === "light" ? "text-black/60" : "text-white/70")} />
+              Mock image
             </div>
-            <div className="mt-1">{overlayText}</div>
           </div>
         </div>
       ) : null}
     </div>
   );
 }
-

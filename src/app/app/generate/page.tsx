@@ -635,7 +635,11 @@ export default function GeneratePage() {
           ) : null}
 
           {result && result.ok ? (
-            <PreviewSwitcher outputJson={result.content.output} initialPlatform={platform} />
+            <PreviewSwitcher
+              outputJson={result.content.output}
+              imageUrl={result.content.imageUrl}
+              initialPlatform={platform}
+            />
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
               Generate to see a preview here.

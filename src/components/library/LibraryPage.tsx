@@ -64,6 +64,7 @@ export function LibraryPage({ status }: { status: Status }) {
   const [undoOpen, setUndoOpen] = useState(false);
   const [undoReason, setUndoReason] = useState("");
   const [undoing, setUndoing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function toIsoEndOfDay(dateStr: string) {
     const d = new Date(dateStr);
@@ -189,6 +190,29 @@ export function LibraryPage({ status }: { status: Status }) {
     }
   }
 
+  async function deleteContent(item: Item) {
+    const ok = window.confirm("Delete this content? This cannot be undone.");
+    if (!ok) return;
+    setDeletingId(item.id);
+    try {
+      const res = await fetch(`/api/content/${item.id}`, { method: "DELETE" });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; error?: string };
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "DELETE_FAILED");
+      if (selected?.id === item.id) {
+        setPreviewOpen(false);
+        setDecisionOpen(false);
+        setUndoOpen(false);
+        setSelected(null);
+      }
+      await load(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="text-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -266,7 +290,7 @@ export function LibraryPage({ status }: { status: Status }) {
                     <img
                       src={i.imageUrl}
                       alt={i.title ?? "Generated image"}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain bg-slate-100"
                     />
                   ) : i.imageStatus === "generating" ? (
                     <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -336,6 +360,14 @@ export function LibraryPage({ status }: { status: Status }) {
                   >
                     Regenerate image
                   </Button>
+                  <Button
+                    onClick={() => deleteContent(i)}
+                    size="sm"
+                    variant="destructive"
+                    disabled={deletingId === i.id}
+                  >
+                    {deletingId === i.id ? "Deleting..." : "Delete"}
+                  </Button>
                 </div>
 
                 <div className="pt-2 flex flex-wrap gap-2">
@@ -354,7 +386,7 @@ export function LibraryPage({ status }: { status: Status }) {
                       </Button>
                     </>
                   ) : (
-                <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
+                    <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
                       Move back to Generated
                     </Button>
                   )}
@@ -386,6 +418,7 @@ export function LibraryPage({ status }: { status: Status }) {
             <div className="mt-4">
               <PreviewSwitcher
                 outputJson={selected.output}
+                imageUrl={selected.imageUrl}
                 initialPlatform={selected.platform as "facebook" | "instagram" | "pinterest" | "x"}
               />
             </div>
@@ -393,18 +426,33 @@ export function LibraryPage({ status }: { status: Status }) {
             {selected.status === "generated" ? (
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
                 <Button onClick={() => openDecision(selected, "accept")}>Accept</Button>
-              <Button
-                variant="outline"
-                className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
-                onClick={() => openDecision(selected, "reject")}
-              >
-                Reject
-              </Button>
+                <Button
+                  variant="outline"
+                  className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                  onClick={() => openDecision(selected, "reject")}
+                >
+                  Reject
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => deleteContent(selected)}
+                  disabled={deletingId === selected.id}
+                >
+                  {deletingId === selected.id ? "Deleting..." : "Delete"}
+                </Button>
               </div>
             ) : (
               <div className="mt-6 flex items-center justify-end">
                 <Button variant="outline" onClick={() => openUndo(selected)}>
                   Move back to Generated
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="ml-2"
+                  onClick={() => deleteContent(selected)}
+                  disabled={deletingId === selected.id}
+                >
+                  {deletingId === selected.id ? "Deleting..." : "Delete"}
                 </Button>
               </div>
             )}

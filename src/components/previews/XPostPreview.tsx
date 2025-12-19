@@ -16,11 +16,13 @@ export function XPostPreview({
   brand,
   device,
   theme,
+  imageUrl,
 }: {
   output: PreviewOutput;
   brand: BrandPreviewProfile | null;
   device: PreviewDevice;
   theme: PreviewTheme;
+  imageUrl?: string | null;
 }) {
   const name = brand?.brandName || "Lexus";
   const handle = toHandle(name);
@@ -28,7 +30,6 @@ export function XPostPreview({
 
   const text = formatCaptionWithHashtags(output);
   const hasMedia = output.type === "graphic" || output.type === "video";
-  const overlay = output.type === "graphic" ? output.visual_concept : null;
 
   return (
     <div
@@ -72,9 +73,24 @@ export function XPostPreview({
                   brand={brand}
                   theme={theme}
                   aspect="square"
-                  overlayText={overlay}
+                  imageUrl={output.type === "graphic" ? imageUrl : null}
                   className="rounded-2xl"
                 />
+                {output.type === "graphic" && output.visual_concept ? (
+                  <div
+                    className={cn(
+                      "mt-2 rounded-lg border px-3 py-2 text-xs",
+                      theme === "light"
+                        ? "border-slate-200 bg-slate-50 text-slate-600"
+                        : "border-white/10 bg-white/5 text-white/70",
+                    )}
+                  >
+                    <div className={cn("text-[10px] uppercase tracking-wide", theme === "light" ? "text-slate-500" : "text-white/60")}>
+                      Visual concept
+                    </div>
+                    <div className="mt-1">{output.visual_concept}</div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -104,4 +120,3 @@ export function XPostPreview({
     </div>
   );
 }
-

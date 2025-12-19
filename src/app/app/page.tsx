@@ -223,7 +223,11 @@ export default function DashboardPage() {
                 <div className="bg-slate-100">
                   <div className="relative h-32 w-full overflow-hidden">
                     {item.imageStatus === "ready" && item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.title ?? "Generated"} className="h-full w-full object-cover" />
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title ?? "Generated"}
+                        className="h-full w-full object-contain bg-slate-100"
+                      />
                     ) : item.imageStatus === "generating" ? (
                       <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Generating image…
