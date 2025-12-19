@@ -312,6 +312,33 @@ export function LibraryPage({ status }: { status: Status }) {
                 </div>
 
                 <div className="pt-2 flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => openPreview(i)}
+                    size="sm"
+                    variant="outline"
+                    className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+                  >
+                    Preview
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const ok = window.confirm("Regenerate image for this content?");
+                      if (!ok) return;
+                      fetch(`/api/generated-content/${i.id}/regenerate`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ mode: "regenerate" }),
+                      }).then(() => load(true));
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+                  >
+                    Regenerate image
+                  </Button>
+                </div>
+
+                <div className="pt-2 flex flex-wrap gap-2">
                   {status === "generated" ? (
                     <>
                       <Button onClick={() => openDecision(i, "accept")} size="sm">
