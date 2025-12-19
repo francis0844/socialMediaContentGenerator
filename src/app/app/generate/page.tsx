@@ -30,6 +30,9 @@ type GenerateResponse =
       content: {
         id: string;
         status: string;
+        imageStatus?: string;
+        imageUrl?: string | null;
+        imageAspectRatio?: string | null;
         createdAt: string;
         title: string | null;
         output: unknown;
