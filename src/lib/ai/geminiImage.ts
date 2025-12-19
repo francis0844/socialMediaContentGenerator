@@ -75,39 +75,29 @@ export class GeminiImageClient {
       throw new Error(`GEMINI_IMAGE_FAILED: ${res.status} ${errText}`);
     }
 
-    const partSchema = z.union([
-      z.object({
-        inlineData: z.object({
-          mimeType: z.string(),
-          data: z.string(),
-        }),
-      }),
-      z.object({
-        text: z.string(),
-      }),
-    ]);
+    const json = (await res.json()) as any;
+    const candidates = Array.isArray(json?.candidates) ? json.candidates : [];
+    if (!candidates.length) {
+      throw new Error("GEMINI_IMAGE_NO_CANDIDATES");
+    }
+    const parts = Array.isArray(candidates[0]?.content?.parts)
+      ? candidates[0].content.parts.map((p: any) => {
+          // Normalize inline_data -> inlineData
+          if (p?.inline_data && !p.inlineData) {
+            return { ...p, inlineData: p.inline_data };
+          }
+          return p;
+        })
+      : [];
 
-    const schema = z.object({
-      candidates: z
-        .array(
-          z.object({
-            content: z.object({
-              parts: z.array(partSchema),
-            }),
-          }),
-        )
-        .nonempty(),
-    });
-
-    const json = schema.parse(await res.json());
-    const part = json.candidates[0].content.parts.find(
-      (p) => "inlineData" in p && (p as any).inlineData?.data,
-    ) as { inlineData: { data: string; mimeType: string } } | undefined;
-    if (!part) throw new Error("GEMINI_IMAGE_NO_DATA");
+    const imgPart = parts.find((p: any) => p?.inlineData?.data);
+    if (!imgPart) {
+      throw new Error("GEMINI_IMAGE_NO_DATA");
+    }
 
     return {
-      bytes: Buffer.from(part.inlineData.data, "base64"),
-      mimeType: part.inlineData.mimeType,
+      bytes: Buffer.from(imgPart.inlineData.data, "base64"),
+      mimeType: imgPart.inlineData.mimeType,
     };
   }
 }
