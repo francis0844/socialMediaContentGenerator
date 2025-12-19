@@ -80,9 +80,8 @@ export class GeminiImageClient {
     if (!candidates.length) {
       throw new Error("GEMINI_IMAGE_NO_CANDIDATES");
     }
-    const parts = Array.isArray(candidates[0]?.content?.parts)
+    const candidateParts = Array.isArray(candidates[0]?.content?.parts)
       ? candidates[0].content.parts.map((p: any) => {
-          // Normalize inline_data -> inlineData
           if (p?.inline_data && !p.inlineData) {
             return { ...p, inlineData: p.inline_data };
           }
@@ -90,7 +89,7 @@ export class GeminiImageClient {
         })
       : [];
 
-    const imgPart = parts.find((p: any) => p?.inlineData?.data);
+    const imgPart = candidateParts.find((p: any) => p?.inlineData?.data);
     if (!imgPart) {
       throw new Error("GEMINI_IMAGE_NO_DATA");
     }
