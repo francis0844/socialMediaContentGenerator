@@ -75,19 +75,24 @@ export class GeminiImageClient {
       throw new Error(`GEMINI_IMAGE_FAILED: ${res.status} ${errText}`);
     }
 
+    const partSchema = z.union([
+      z.object({
+        inlineData: z.object({
+          mimeType: z.string(),
+          data: z.string(),
+        }),
+      }),
+      z.object({
+        text: z.string(),
+      }),
+    ]);
+
     const schema = z.object({
       candidates: z
         .array(
           z.object({
             content: z.object({
-              parts: z.array(
-                z.object({
-                  inlineData: z.object({
-                    mimeType: z.string(),
-                    data: z.string(),
-                  }),
-                }),
-              ),
+              parts: z.array(partSchema),
             }),
           }),
         )
@@ -95,7 +100,9 @@ export class GeminiImageClient {
     });
 
     const json = schema.parse(await res.json());
-    const part = json.candidates[0].content.parts.find((p) => p.inlineData?.data);
+    const part = json.candidates[0].content.parts.find(
+      (p) => "inlineData" in p && (p as any).inlineData?.data,
+    ) as { inlineData: { data: string; mimeType: string } } | undefined;
     if (!part) throw new Error("GEMINI_IMAGE_NO_DATA");
 
     return {
