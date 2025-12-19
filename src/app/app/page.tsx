@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faInstagram, faPinterest, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 
 import { useSession } from "next-auth/react";
+import { useImageStatusPoller } from "@/hooks/useImageStatusPoller";
 
 type UsageResponse = {
   ok: boolean;
@@ -37,6 +38,18 @@ export default function DashboardPage() {
   const user = data?.user ?? null;
   const accountId = data?.accountId ?? null;
   const [usageData, setUsageData] = useState<UsageResponse | null>(null);
+  const [recentContent, setRecentContent] = useState<
+    Array<{
+      id: string;
+      title: string | null;
+      platform: string;
+      contentType: string;
+      createdAt: string;
+      imageStatus?: string;
+      imageUrl?: string | null;
+      imageError?: string | null;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,7 +64,51 @@ export default function DashboardPage() {
     run();
   }, [accountId]);
 
+  useEffect(() => {
+    async function loadRecent() {
+      if (!accountId) return;
+      const res = await fetch("/api/content?status=generated&take=6", { cache: "no-store" });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        items?: Array<any>;
+      };
+      if (res.ok && json.ok && json.items) {
+        setRecentContent(
+          json.items.map((i) => ({
+            id: i.id,
+            title: i.title,
+            platform: i.platform,
+            contentType: i.contentType,
+            createdAt: i.createdAt,
+            imageStatus: i.imageStatus,
+            imageUrl: i.imageUrl ?? i.primaryImageUrl ?? null,
+            imageError: i.imageError ?? null,
+          })),
+        );
+      }
+    }
+    loadRecent();
+  }, [accountId]);
+
   const daysLeft = usageData?.trialDaysLeft ?? null;
+
+  useImageStatusPoller(
+    recentContent.filter((i) => i.imageStatus === "generating").map((i) => ({ id: i.id })),
+    (id, update) => {
+      setRecentContent((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                imageStatus: update.imageStatus,
+                imageUrl: update.primaryImageUrl ?? item.imageUrl,
+                imageError: update.imageError ?? item.imageError,
+              }
+            : item,
+        ),
+      );
+    },
+  );
 
   const statCards = [
     {
@@ -149,10 +206,38 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {(usageData?.recent ?? [1, 2, 3].map((i) => ({ id: `${i}`, title: `Latest generated idea ${i}`, platform: "facebook", contentType: "text", createdAt: "" }))).slice(0, 3).map((item, idx) => (
+            {(recentContent.length
+              ? recentContent
+              : [1, 2, 3].map((i) => ({
+                  id: `${i}`,
+                  title: `Latest generated idea ${i}`,
+                  platform: "facebook",
+                  contentType: "text",
+                  createdAt: "",
+                  imageStatus: "none",
+                  imageUrl: null as string | null,
+                  imageError: null as string | null,
+                }))
+            ).slice(0, 3).map((item, idx) => (
               <div key={item.id ?? idx} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="flex h-32 items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-slate-400">
-                  Image coming soon
+                <div className="bg-slate-100">
+                  <div className="relative h-32 w-full overflow-hidden">
+                    {item.imageStatus === "ready" && item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.title ?? "Generated"} className="h-full w-full object-cover" />
+                    ) : item.imageStatus === "generating" ? (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Generating image…
+                      </div>
+                    ) : item.imageStatus === "failed" ? (
+                      <div className="flex h-full w-full items-center justify-center bg-rose-50 px-4 text-center text-xs font-semibold text-rose-700">
+                        Image failed
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-slate-400">
+                        Preview coming soon
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="p-4">
                   <div className="text-xs text-slate-500">

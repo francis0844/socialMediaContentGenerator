@@ -19,6 +19,8 @@ export async function GET(req: Request) {
     const fromParam = url.searchParams.get("from") ?? undefined;
     const toParam = url.searchParams.get("to") ?? undefined;
     const q = url.searchParams.get("q") ?? undefined;
+    const takeParam = url.searchParams.get("take");
+    const take = takeParam ? Math.max(1, Math.min(50, parseInt(takeParam, 10))) : 50;
 
     const platform = platformParam ? socialPlatformSchema.parse(platformParam) : null;
     const contentType = typeParam ? contentTypeSchema.parse(typeParam) : null;
@@ -56,7 +58,7 @@ export async function GET(req: Request) {
       },
       include: { request: true },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take,
     });
 
     return NextResponse.json({

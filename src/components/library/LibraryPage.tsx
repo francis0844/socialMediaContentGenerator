@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PreviewSwitcher } from "@/components/previews/PreviewSwitcher";
+import { useImageStatusPoller } from "@/hooks/useImageStatusPoller";
 
 type Status = "generated" | "accepted" | "rejected";
 type Platform = "" | "facebook" | "instagram" | "pinterest" | "x";
@@ -98,27 +99,33 @@ export function LibraryPage({ status }: { status: Status }) {
   }
 
   useEffect(() => {
-    let cancelled = false;
-    let attempt = 0;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const tick = async () => {
-      await load(attempt === 0);
-      if (cancelled) return;
-      attempt += 1;
-      if (attempt > 39) return; // ~2 minutes total
-      const delay = attempt < 15 ? 2000 : 5000;
-      timer = setTimeout(tick, delay);
-    };
-
-    tick();
-
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
+    load(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, platform, type, from, to, query]);
+
+  const updateItem = useCallback(
+    (id: string, update: { imageStatus: string; primaryImageUrl?: string | null; imageError?: string | null }) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                imageStatus: update.imageStatus as any,
+                imageUrl: update.primaryImageUrl ?? i.imageUrl,
+                imageError: update.imageError ?? i.imageError,
+              }
+            : i,
+        ),
+      );
+    },
+    [],
+  );
+
+  const generatingItems = items.filter((i) => i.imageStatus === "generating");
+  useImageStatusPoller(
+    generatingItems.map((i) => ({ id: i.id })),
+    updateItem,
+  );
 
   function openPreview(item: Item) {
     setSelected(item);
@@ -266,8 +273,19 @@ export function LibraryPage({ status }: { status: Status }) {
                       Generating image…
                     </div>
                   ) : i.imageStatus === "failed" ? (
-                    <div className="flex h-full w-full items-center justify-center bg-rose-50 px-4 text-center text-xs font-semibold text-rose-700">
-                      Image failed. {i.imageError ?? ""}
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-rose-50 px-4 text-center text-xs font-semibold text-rose-700">
+                      <div>Image failed. {i.imageError ?? ""}</div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-rose-200 bg-white text-rose-700 hover:bg-rose-100"
+                        onClick={async () => {
+                          await fetch(`/api/generated-content/${i.id}/regenerate`, { method: "POST" });
+                          load(true);
+                        }}
+                      >
+                        Retry image
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
