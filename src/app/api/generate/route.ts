@@ -145,15 +145,23 @@ export async function POST(req: Request) {
 
       let imageJobId: string | null = null;
       if (output.type === "graphic") {
-        const job = await tx.imageJob.create({
-          data: {
-            accountId: account.id,
-            generatedContentId: content.id,
-            status: "QUEUED",
-            attempts: 0,
-          },
+        const existing = await tx.imageJob.findFirst({
+          where: { generatedContentId: content.id },
+          select: { id: true },
         });
-        imageJobId = job.id;
+        if (!existing) {
+          const job = await tx.imageJob.create({
+            data: {
+              accountId: account.id,
+              generatedContentId: content.id,
+              status: "QUEUED",
+              attempts: 0,
+            },
+          });
+          imageJobId = job.id;
+        } else {
+          imageJobId = existing.id;
+        }
       }
 
       return { request, content, imageJobId };
