@@ -15,7 +15,7 @@ import { prisma } from "@/lib/db";
 import { maybeFetchVoiceDocText } from "@/lib/brand/voiceDoc";
 import { log } from "@/lib/observability/log";
 import { getRatelimit } from "@/lib/ratelimit";
-import { triggerGraphicImageGeneration } from "@/lib/ai/graphicImageJob";
+import { enqueueImageJob } from "@/lib/queue/imageQueue";
 
 const requestSchema = z.object({
   contentType: contentTypeSchema,
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       memorySummary: (account.memorySummary ?? "").slice(0, 1200),
     });
 
-    const { request, content } = await prisma.$transaction(async (tx) => {
+    const { request, content, imageJobId } = await prisma.$transaction(async (tx) => {
       const request = await tx.generationRequest.create({
         data: {
           accountId: account.id,
@@ -143,18 +143,25 @@ export async function POST(req: Request) {
         },
       });
 
-      return { request, content };
+      let imageJobId: string | null = null;
+      if (output.type === "graphic") {
+        const job = await tx.imageJob.create({
+          data: {
+            accountId: account.id,
+            generatedContentId: content.id,
+            status: "QUEUED",
+            attempts: 0,
+          },
+        });
+        imageJobId = job.id;
+      }
+
+      return { request, content, imageJobId };
     });
 
-    if (output.type === "graphic") {
-      // Fire-and-forget image generation (Gemini); UI will poll via /api/content
-      triggerGraphicImageGeneration({
-        contentId: content.id,
-        accountId: account.id,
-        platform: parsed.platform,
-        output,
-      }).catch((err) => {
-        log("error", "ai.image.generate.error", { contentId: content.id, error: `${err}` });
+    if (output.type === "graphic" && imageJobId) {
+      enqueueImageJob({ jobId: imageJobId }).catch((err) => {
+        log("error", "ai.image.enqueue.error", { contentId: content.id, error: `${err}` });
       });
     }
 

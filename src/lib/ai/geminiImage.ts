@@ -19,16 +19,14 @@ export class GeminiImageClient {
   private apiKey: string;
   private model: string;
   private baseUrl = "https://generativelanguage.googleapis.com";
+  public modelId: string;
 
   constructor() {
     const env = getServerEnv();
     if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY missing");
     this.apiKey = env.GEMINI_API_KEY;
     this.model = env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
-  }
-
-  get modelId() {
-    return this.model;
+    this.modelId = this.model;
   }
 
   async generate(request: GeminiImageRequest): Promise<GeminiImageResult> {
