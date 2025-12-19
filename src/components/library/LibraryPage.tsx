@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,9 @@ export function LibraryPage({ status }: { status: Status }) {
     if (status === "rejected") return "Rejected";
     return "Generated";
   }, [status]);
+
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q")?.trim() ?? "";
 
   const [platform, setPlatform] = useState<Platform>("");
   const [type, setType] = useState<ContentType>("");
@@ -71,6 +75,8 @@ export function LibraryPage({ status }: { status: Status }) {
     if (from) params.set("from", new Date(from).toISOString());
     if (to) params.set("to", toIsoEndOfDay(to));
 
+    if (query) params.set("q", query);
+
     const res = await fetch(`/api/content?${params.toString()}`, { cache: "no-store" });
     const raw: unknown = await res.json();
     const data = raw as ContentResponse;
@@ -89,7 +95,7 @@ export function LibraryPage({ status }: { status: Status }) {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, platform, type, from, to]);
+  }, [status, platform, type, from, to, query]);
 
   function openPreview(item: Item) {
     setSelected(item);

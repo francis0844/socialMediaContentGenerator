@@ -4,20 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import {
-  BarChart3,
-  BookOpen,
-  CheckCircle2,
-  CreditCard,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Search,
-  Settings,
-  Sparkles,
-  Undo2,
-  Users,
-} from "lucide-react";
+import { BarChart3, BookOpen, CheckCircle2, LayoutDashboard, LogOut, Menu, Search, Settings, Sparkles, Undo2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -61,24 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const user = data?.user ?? null;
   const accountId = data?.accountId ?? null;
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
-  const [brandForm, setBrandForm] = useState({
-    brandName: "",
-    companyOverview: "",
-    niche: "",
-    targetAudience: "",
-    goals: "",
-    brandVoiceMode: "preset",
-    voicePreset: "professional",
-  });
-  const [brandLoading, setBrandLoading] = useState(false);
-  const [brandSaving, setBrandSaving] = useState(false);
-  const [billingLoading, setBillingLoading] = useState(false);
-  const [billingMessage, setBillingMessage] = useState<string | null>(null);
-  const [billingStatus, setBillingStatus] = useState<string>("trialing");
-  const [trialInfo, setTrialInfo] = useState<string | null>(null);
-  const [settingsTab, setSettingsTab] = useState<"brand" | "billing">("brand");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -106,98 +76,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       { href: "/app/library/generated", label: "Generated", icon: <BookOpen className="h-4 w-4" /> },
       { href: "/app/library/accepted", label: "Accepted", icon: <CheckCircle2 className="h-4 w-4" /> },
       { href: "/app/library/rejected", label: "Rejected", icon: <Undo2 className="h-4 w-4" /> },
-      { label: "Settings", icon: <Settings className="h-4 w-4" />, onClick: () => setShowSettings(true) },
+      { href: "/app/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
     ];
     return isAdmin
       ? [...base, { href: "/app/admin", label: "Admin", icon: <BarChart3 className="h-4 w-4" /> }]
       : base;
   }, [isAdmin]);
 
-  useEffect(() => {
-    async function loadSettings() {
-      setBrandLoading(true);
-      setBillingLoading(true);
-      try {
-        const res = await fetch("/api/brand-profile", { cache: "no-store" });
-        const json = await res.json();
-        if (json?.profile) {
-          setBrandForm({
-            brandName: json.profile.brandName ?? "",
-            companyOverview: json.profile.companyOverview ?? "",
-            niche: json.profile.niche ?? "",
-            targetAudience: json.profile.targetAudience ?? "",
-            goals: json.profile.goals ?? "",
-            brandVoiceMode: json.profile.brandVoiceMode ?? "preset",
-            voicePreset: json.profile.voicePreset ?? "professional",
-          });
-        }
-      } catch {
-        // ignore
-      } finally {
-        setBrandLoading(false);
-      }
-
-      try {
-        const res = await fetch("/api/usage", { cache: "no-store" });
-        const json = await res.json();
-        if (json?.billingStatus) setBillingStatus(json.billingStatus);
-        if (json?.trialDaysLeft !== undefined && json?.trialDaysLeft !== null) {
-          setTrialInfo(`${json.trialDaysLeft} day${json.trialDaysLeft === 1 ? "" : "s"} left`);
-        }
-      } catch {
-        // ignore
-      } finally {
-        setBillingLoading(false);
-      }
-    }
-    if (showSettings) void loadSettings();
-  }, [showSettings]);
-
-  async function saveBrand() {
-    setBrandSaving(true);
-    setBillingMessage(null);
-    try {
-      const res = await fetch("/api/brand-profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(brandForm),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      setBillingMessage("Brand profile saved.");
-    } catch (e) {
-      setBillingMessage(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setBrandSaving(false);
-    }
-  }
-
-  async function startCheckout() {
-    setBillingMessage(null);
-    setBillingLoading(true);
-    try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const data = await res.json();
-      if (data?.url) window.location.href = data.url;
-    } catch (e) {
-      setBillingMessage(e instanceof Error ? e.message : "Checkout failed");
-    } finally {
-      setBillingLoading(false);
-    }
-  }
-
-  async function openPortal() {
-    setBillingMessage(null);
-    setBillingLoading(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (data?.url) window.location.href = data.url;
-    } catch (e) {
-      setBillingMessage(e instanceof Error ? e.message : "Portal failed");
-    } finally {
-      setBillingLoading(false);
-    }
-  }
+  // settings data now loads within settings page (see /app/settings)
 
   if (loading) {
     return (
@@ -279,173 +165,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {showSettings ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-semibold text-slate-800">Settings</div>
-                <div className="text-xs text-slate-500">Manage brand profile and billing</div>
-              </div>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="mt-4">
-              <div className="mb-3 flex gap-2">
-                <button
-                  className={cn(
-                    "rounded-lg px-4 py-2 text-sm font-semibold",
-                    settingsTab === "brand"
-                      ? "bg-teal-500 text-white shadow-sm"
-                      : "border border-slate-200 bg-white text-slate-700",
-                  )}
-                  onClick={() => setSettingsTab("brand")}
-                >
-                  Brand Profile
-                </button>
-                <button
-                  className={cn(
-                    "rounded-lg px-4 py-2 text-sm font-semibold",
-                    settingsTab === "billing"
-                      ? "bg-teal-500 text-white shadow-sm"
-                      : "border border-slate-200 bg-white text-slate-700",
-                  )}
-                  onClick={() => setSettingsTab("billing")}
-                >
-                  Billing
-                </button>
-              </div>
-
-              {settingsTab === "brand" ? (
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-semibold text-slate-800">Brand Profile</div>
-                    <Users className="h-4 w-4 text-teal-600" />
-                  </div>
-                  {brandLoading ? (
-                    <div className="text-xs text-slate-500">Loading brand…</div>
-                  ) : (
-                    <div className="space-y-2 text-sm">
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        placeholder="Brand name"
-                        value={brandForm.brandName}
-                        onChange={(e) => setBrandForm((p) => ({ ...p, brandName: e.target.value }))}
-                      />
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        placeholder="Niche / industry"
-                        value={brandForm.niche}
-                        onChange={(e) => setBrandForm((p) => ({ ...p, niche: e.target.value }))}
-                      />
-                      <textarea
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        rows={3}
-                        placeholder="Company overview"
-                        value={brandForm.companyOverview}
-                        onChange={(e) =>
-                          setBrandForm((p) => ({ ...p, companyOverview: e.target.value }))
-                        }
-                      />
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        placeholder="Target audience"
-                        value={brandForm.targetAudience}
-                        onChange={(e) => setBrandForm((p) => ({ ...p, targetAudience: e.target.value }))}
-                      />
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        placeholder="Goals"
-                        value={brandForm.goals}
-                        onChange={(e) => setBrandForm((p) => ({ ...p, goals: e.target.value }))}
-                      />
-                      <select
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                        value={brandForm.brandVoiceMode}
-                        onChange={(e) =>
-                          setBrandForm((p) => ({ ...p, brandVoiceMode: e.target.value }))
-                        }
-                      >
-                        <option value="preset">Preset tone</option>
-                        <option value="uploaded">Uploaded document</option>
-                      </select>
-                      {brandForm.brandVoiceMode === "preset" ? (
-                        <select
-                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                          value={brandForm.voicePreset}
-                          onChange={(e) =>
-                            setBrandForm((p) => ({ ...p, voicePreset: e.target.value }))
-                          }
-                        >
-                          <option value="professional">Professional</option>
-                          <option value="friendly">Friendly</option>
-                          <option value="bold">Bold</option>
-                          <option value="playful">Playful</option>
-                          <option value="inspirational">Inspirational</option>
-                        </select>
-                      ) : (
-                        <div className="text-xs text-slate-500">
-                          Uploaded voice doc required (manage via main Brand Profile page).
-                        </div>
-                      )}
-                      <button
-                        onClick={saveBrand}
-                        disabled={brandSaving}
-                        className="w-full rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md disabled:opacity-50"
-                      >
-                        {brandSaving ? "Saving…" : "Save brand"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-
-              {settingsTab === "billing" ? (
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-semibold text-slate-800">Billing</div>
-                    <CreditCard className="h-4 w-4 text-teal-600" />
-                  </div>
-                  {billingLoading ? (
-                    <div className="text-xs text-slate-500">Loading billing…</div>
-                  ) : (
-                    <>
-                      <div className="text-sm text-slate-600">
-                        Status: <span className="font-semibold text-slate-900">{billingStatus}</span>
-                      </div>
-                      <div className="text-sm text-slate-600">
-                        Trial: <span className="font-semibold text-slate-900">{trialInfo ?? "—"}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <button
-                          onClick={startCheckout}
-                          className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
-                        >
-                          Subscribe
-                        </button>
-                        <button
-                          onClick={openPortal}
-                          className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
-                        >
-                          Customer portal
-                        </button>
-                      </div>
-                      {billingMessage ? (
-                        <div className="text-xs text-slate-500">{billingMessage}</div>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -81,8 +81,8 @@ export function PreviewSwitcher({
       ? "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900"
       : "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900";
 
-  const summaryText = theme === "light" ? "text-slate-700" : "text-white/80";
-  const jsonText = theme === "light" ? "text-slate-700" : "text-white/70";
+  const summaryText = "text-slate-700";
+  const jsonText = "text-slate-800";
 
   return (
     <div className={cn(containerStyles, className)}>

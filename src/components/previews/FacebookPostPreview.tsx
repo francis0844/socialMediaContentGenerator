@@ -34,7 +34,9 @@ export function FacebookPostPreview({
     <div
       className={cn(
         "w-full rounded-2xl",
-        theme === "light" ? "bg-white text-zinc-900" : "bg-zinc-950 text-zinc-100",
+        theme === "light"
+          ? "bg-white text-zinc-900 shadow-[0_18px_60px_-30px_rgba(15,23,42,0.35)]"
+          : "bg-zinc-950 text-zinc-100",
       )}
     >
       <div className={cn("p-4", device === "mobile" ? "p-3" : "p-4")}>

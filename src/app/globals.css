@@ -107,11 +107,20 @@ textarea {
   background-color: #ffffff;
   color: #0f172a;
   border-color: #e2e8f0;
+  outline: none;
 }
 
 input::placeholder,
 textarea::placeholder {
   color: #94a3b8;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: #00bba7;
+  box-shadow: 0 0 0 3px rgba(0, 187, 167, 0.18);
+  outline: none;
 }
 
 button,
