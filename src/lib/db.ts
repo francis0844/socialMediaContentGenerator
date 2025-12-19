@@ -2,11 +2,12 @@ import "server-only";
 
 import { PrismaClient } from "@prisma/client";
 
-// Use pooler URL for runtime connections; append safe defaults if not present.
-const poolUrlEnv = "DATABASE_POOL_URL";
-if (process.env[poolUrlEnv] && !process.env[poolUrlEnv]!.includes("connection_limit")) {
-  const hasQuery = process.env[poolUrlEnv]!.includes("?");
-  process.env[poolUrlEnv] = `${process.env[poolUrlEnv]}${hasQuery ? "&" : "?"}pgbouncer=true&connection_limit=1`;
+// Normalize to DATABASE_URL (pooler) and append safe defaults if missing.
+if (process.env.DATABASE_URL) {
+  const hasQuery = process.env.DATABASE_URL.includes("?");
+  if (!process.env.DATABASE_URL.includes("connection_limit")) {
+    process.env.DATABASE_URL = `${process.env.DATABASE_URL}${hasQuery ? "&" : "?"}pgbouncer=true&connection_limit=1`;
+  }
 }
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
