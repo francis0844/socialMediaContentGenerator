@@ -370,6 +370,22 @@ export default function GeneratePage() {
     );
   }
 
+  function fillTest() {
+    setContentType("graphic");
+    setPlatform("instagram");
+    setMainMessage("Launch our summer milk tea with a bright, refreshing message.");
+    setTone("professional");
+    setCaptionLength("medium");
+    setHashtagMode("required");
+    setHashtagCount(8);
+    setKeywordsInclude("milk tea, summer, refreshing, cozy cafe");
+    setKeywordsAvoid("alcohol, politics");
+    setCta("Shop now");
+    setImageIdea("Bright cafe scene, iced milk tea with fruit garnish, soft gradients, bold CTA button.");
+    setAspectRatio("1:1");
+    setUseBrandLogo(true);
+  }
+
   return (
     <div className="text-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -379,17 +395,22 @@ export default function GeneratePage() {
             Create platform-ready content. Outputs are saved to the Generated library.
           </p>
         </div>
-        <Button
-          onClick={generate}
-          disabled={
-            loading ||
-            !mainMessage.trim() ||
-            (contentType === "graphic" && invalidRefs) ||
-            (contentType === "graphic" && totalRefs > 10)
-          }
-        >
-          {loading ? "Generating…" : "Generate"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={fillTest} disabled={loading}>
+            Fill test data
+          </Button>
+          <Button
+            onClick={generate}
+            disabled={
+              loading ||
+              !mainMessage.trim() ||
+              (contentType === "graphic" && invalidRefs) ||
+              (contentType === "graphic" && totalRefs > 10)
+            }
+          >
+            {loading ? "Generating…" : "Generate"}
+          </Button>
+        </div>
       </div>
 
       {error ? (
