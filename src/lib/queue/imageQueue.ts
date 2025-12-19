@@ -67,8 +67,7 @@ async function processJob(jobId: string) {
       images: [], // references can be added in future when wiring refs
     });
 
-    const buffer = Buffer.from(result.dataBase64, "base64");
-    const uploaded = await uploadImageBuffer(buffer, "generated-images");
+    const uploaded = await uploadImageBuffer(result.bytes, "generated-images");
 
     const media = await prisma.mediaAsset.create({
       data: {

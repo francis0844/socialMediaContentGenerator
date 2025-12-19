@@ -1,8 +1,10 @@
 import "server-only";
 
+import { z } from "zod";
+
 import { getServerEnv } from "@/lib/env/server";
 
-type InlineImage = { data: string; mimeType: string; context?: string };
+export type InlineImage = { data: string; mimeType: string };
 
 export type GeminiImageRequest = {
   prompt: string;
@@ -11,41 +13,41 @@ export type GeminiImageRequest = {
 };
 
 export type GeminiImageResult = {
+  bytes: Buffer;
   mimeType: string;
-  dataBase64: string;
 };
 
 export class GeminiImageClient {
   private apiKey: string;
   private model: string;
-  private baseUrl = "https://generativelanguage.googleapis.com";
+  private baseUrl: string;
   public modelId: string;
 
   constructor() {
     const env = getServerEnv();
-    if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY missing");
-    this.apiKey = env.GEMINI_API_KEY;
+    const apiKey = env.GOOGLE_AI_STUDIO_API_KEY || env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY missing");
+    this.apiKey = apiKey;
     this.model = env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
     this.modelId = this.model;
+    this.baseUrl = env.GEMINI_API_BASE_URL ?? "https://generativelanguage.googleapis.com";
   }
 
   async generate(request: GeminiImageRequest): Promise<GeminiImageResult> {
     const model = request.model ?? this.model;
     const url = `${this.baseUrl}/v1beta/models/${model}:generateContent`;
 
+    const refs = request.images ?? [];
+    if (refs.length > 10) throw new Error("TOO_MANY_REFERENCE_IMAGES");
+
     const parts: Array<Record<string, unknown>> = [{ text: request.prompt }];
-    if (request.images?.length) {
-      for (const img of request.images) {
-        parts.push({
-          inlineData: {
-            mimeType: img.mimeType,
-            data: img.data,
-          },
-        });
-        if (img.context) {
-          parts.push({ text: `Reference context: ${img.context}` });
-        }
-      }
+    for (const img of refs) {
+      parts.push({
+        inlineData: {
+          mimeType: img.mimeType,
+          data: img.data,
+        },
+      });
     }
 
     const body = {
@@ -53,16 +55,6 @@ export class GeminiImageClient {
         {
           role: "user",
           parts,
-        },
-      ],
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_SEXUAL",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE",
         },
       ],
     };
@@ -81,19 +73,32 @@ export class GeminiImageClient {
       throw new Error(`GEMINI_IMAGE_FAILED: ${res.status} ${errText}`);
     }
 
-    const json = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ inlineData?: { mimeType: string; data: string } }> } }>;
-    };
+    const schema = z.object({
+      candidates: z
+        .array(
+          z.object({
+            content: z.object({
+              parts: z.array(
+                z.object({
+                  inlineData: z.object({
+                    mimeType: z.string(),
+                    data: z.string(),
+                  }),
+                }),
+              ),
+            }),
+          }),
+        )
+        .nonempty(),
+    });
 
-    const candidate = json.candidates?.[0];
-    const part = candidate?.content?.parts?.find((p) => p.inlineData?.data);
-    if (!part?.inlineData?.data || !part.inlineData.mimeType) {
-      throw new Error("GEMINI_IMAGE_NO_DATA");
-    }
+    const json = schema.parse(await res.json());
+    const part = json.candidates[0].content.parts.find((p) => p.inlineData?.data);
+    if (!part) throw new Error("GEMINI_IMAGE_NO_DATA");
 
     return {
+      bytes: Buffer.from(part.inlineData.data, "base64"),
       mimeType: part.inlineData.mimeType,
-      dataBase64: part.inlineData.data,
     };
   }
 }
