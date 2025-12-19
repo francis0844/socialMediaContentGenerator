@@ -21,7 +21,6 @@ export async function POST(req: Request) {
     const paramsToSign = {
       folder: body.folder,
       timestamp,
-      resource_type: body.resourceType,
       ...(body.allowedFormats?.length ? { allowed_formats: body.allowedFormats.join(",") } : {}),
     };
     const signature = cloudinary.utils.api_sign_request(

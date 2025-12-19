@@ -7,6 +7,7 @@ export async function GET(_: NextRequest, context: any) {
   try {
     const session = await requireVerifiedSession();
     const id = context?.params?.id as string;
+    if (!id) return NextResponse.json({ ok: false, error: "ID_REQUIRED" }, { status: 400 });
     const content = await prisma.generatedContent.findUnique({
       where: { id },
       select: {
