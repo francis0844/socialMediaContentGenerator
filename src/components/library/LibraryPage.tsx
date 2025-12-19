@@ -16,6 +16,11 @@ type ContentType = "" | "graphic" | "story" | "text" | "video";
 type Item = {
   id: string;
   status: Status;
+  imageStatus?: "none" | "generating" | "ready" | "failed";
+  imageUrl?: string | null;
+  imageAspectRatio?: string | null;
+  imageModel?: string | null;
+  imageError?: string | null;
   createdAt: string;
   title: string | null;
   platform: string;
@@ -65,8 +70,8 @@ export function LibraryPage({ status }: { status: Status }) {
     return d.toISOString();
   }
 
-  async function load() {
-    setLoading(true);
+  async function load(forceLoading = false) {
+    if (forceLoading) setLoading(true);
     setError(null);
 
     const params = new URLSearchParams({ status });
@@ -89,11 +94,29 @@ export function LibraryPage({ status }: { status: Status }) {
     }
 
     setItems(data.items);
-    setLoading(false);
+    if (forceLoading) setLoading(false);
   }
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    let attempt = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      await load(attempt === 0);
+      if (cancelled) return;
+      attempt += 1;
+      if (attempt > 39) return; // ~2 minutes total
+      const delay = attempt < 15 ? 2000 : 5000;
+      timer = setTimeout(tick, delay);
+    };
+
+    tick();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, platform, type, from, to, query]);
 
@@ -172,7 +195,7 @@ export function LibraryPage({ status }: { status: Status }) {
         </div>
         <Button
           variant="outline"
-          onClick={load}
+          onClick={() => load(true)}
           className="border-slate-200 bg-white text-slate-800 hover:bg-teal-50 hover:text-teal-700"
         >
           Refresh
@@ -230,8 +253,28 @@ export function LibraryPage({ status }: { status: Status }) {
         ) : items.length ? (
           items.map((i) => (
             <div key={i.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex h-32 items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Preview coming soon
+              <div className="bg-slate-100">
+                <div className="relative aspect-square overflow-hidden">
+                  {i.imageStatus === "ready" && i.imageUrl ? (
+                    <img
+                      src={i.imageUrl}
+                      alt={i.title ?? "Generated image"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : i.imageStatus === "generating" ? (
+                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Generating image…
+                    </div>
+                  ) : i.imageStatus === "failed" ? (
+                    <div className="flex h-full w-full items-center justify-center bg-rose-50 px-4 text-center text-xs font-semibold text-rose-700">
+                      Image failed. {i.imageError ?? ""}
+                    </div>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Preview coming soon
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="p-4 space-y-2">
                 <div className="text-xs text-slate-500">

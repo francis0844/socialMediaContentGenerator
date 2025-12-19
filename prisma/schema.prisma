@@ -51,6 +51,13 @@ enum ContentStatus {
   rejected
 }
 
+enum ImageStatus {
+  none
+  generating
+  ready
+  failed
+}
+
 enum FeedbackDecision {
   accept
   reject
@@ -174,15 +181,20 @@ model GenerationRequest {
 }
 
 model GeneratedContent {
-  id        String        @id @default(cuid())
-  accountId String
-  requestId String
-  title     String?
-  output    Json
-  caption   String?
-  hashtags  Json?
-  status    ContentStatus @default(generated)
-  createdAt DateTime      @default(now())
+  id              String        @id @default(cuid())
+  accountId       String
+  requestId       String
+  title           String?
+  output          Json
+  caption         String?
+  hashtags        Json?
+  status          ContentStatus @default(generated)
+  imageStatus     ImageStatus   @default(none)
+  imageUrl        String?
+  imageModel      String?
+  imageAspectRatio String? @default("1:1")
+  imageError      String?
+  createdAt       DateTime      @default(now())
 
   account  Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
   request  GenerationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)

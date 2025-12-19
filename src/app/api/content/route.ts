@@ -64,6 +64,10 @@ export async function GET(req: Request) {
       items: items.map((i) => ({
         id: i.id,
         status: i.status,
+        imageStatus: i.imageStatus,
+        imageUrl: i.imageUrl,
+        imageAspectRatio: i.imageAspectRatio,
+        imageModel: i.imageModel,
         createdAt: i.createdAt.toISOString(),
         title: i.title,
         platform: i.request.platform,
@@ -71,6 +75,7 @@ export async function GET(req: Request) {
         output: i.output,
         caption: i.caption,
         hashtags: i.hashtags,
+        imageError: i.imageError,
       })),
     });
   } catch (err) {

@@ -15,6 +15,7 @@ import { prisma } from "@/lib/db";
 import { maybeFetchVoiceDocText } from "@/lib/brand/voiceDoc";
 import { log } from "@/lib/observability/log";
 import { getRatelimit } from "@/lib/ratelimit";
+import { triggerGraphicImageGeneration } from "@/lib/ai/graphicImageJob";
 
 const requestSchema = z.object({
   contentType: contentTypeSchema,
@@ -137,11 +138,25 @@ export async function POST(req: Request) {
           caption,
           hashtags,
           status: "generated",
+          imageStatus: output.type === "graphic" ? "generating" : "none",
+          imageAspectRatio: "1:1",
         },
       });
 
       return { request, content };
     });
+
+    if (output.type === "graphic") {
+      // Fire-and-forget image generation (Gemini); UI will poll via /api/content
+      triggerGraphicImageGeneration({
+        contentId: content.id,
+        accountId: account.id,
+        platform: parsed.platform,
+        output,
+      }).catch((err) => {
+        log("error", "ai.image.generate.error", { contentId: content.id, error: `${err}` });
+      });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -149,6 +164,9 @@ export async function POST(req: Request) {
       content: {
         id: content.id,
         status: content.status,
+        imageStatus: content.imageStatus,
+        imageUrl: content.imageUrl,
+        imageAspectRatio: content.imageAspectRatio,
         createdAt: content.createdAt.toISOString(),
         title: content.title,
         output: content.output,
