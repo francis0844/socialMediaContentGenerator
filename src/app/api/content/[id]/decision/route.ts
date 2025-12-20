@@ -45,9 +45,6 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       previousSummary: prevMemory,
       decision: body.decision,
       reason: body.reason,
-      contentType: content.request.contentType,
-      platform: content.request.platform,
-      outputJson: content.output,
     });
     const updatedSummary = memoryUpdate.memorySummary;
     const aiResponse = memoryUpdate.aiResponse;
