@@ -61,6 +61,7 @@ export function LibraryPage({ status }: { status: Status }) {
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
+  const [decisionDone, setDecisionDone] = useState(false);
 
   const [undoOpen, setUndoOpen] = useState(false);
   const [undoReason, setUndoReason] = useState("");
@@ -142,6 +143,7 @@ export function LibraryPage({ status }: { status: Status }) {
     setDecision(nextDecision);
     setReason("");
     setAiResponse(null);
+    setDecisionDone(false);
     setDecisionOpen(true);
   }
 
@@ -176,9 +178,7 @@ export function LibraryPage({ status }: { status: Status }) {
       setAiResponse(data.aiResponse ?? null);
       const nextStatus = decision === "accept" ? "accepted" : "rejected";
       updateItemLocal(selected.id, { status: nextStatus as Status });
-      if (status === "generated") {
-        removeItemLocal(selected.id);
-      }
+      setDecisionDone(true);
     } catch (e) {
       setAiResponse(e instanceof Error ? e.message : "Decision failed");
     } finally {
@@ -559,21 +559,42 @@ export function LibraryPage({ status }: { status: Status }) {
             />
 
             {aiResponse ? (
-              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
-                {aiResponse}
+              <div className="mt-4 flex items-start gap-3">
+                <div className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                  AI
+                </div>
+                <div className="max-w-[85%]">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    AI response
+                  </div>
+                  <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-slate-800 shadow-sm">
+                    {aiResponse}
+                  </div>
+                </div>
               </div>
             ) : null}
 
             <div className="mt-6 flex items-center justify-end gap-2">
-              <Button variant="outline" onClick={() => setDecisionOpen(false)} disabled={submitting}>
-                Close
-              </Button>
               <Button
-                onClick={submitDecision}
-                disabled={submitting || reason.trim().length < 2}
+                variant="outline"
+                onClick={() => {
+                  setDecisionOpen(false);
+                  if (decisionDone && selected && status === "generated") {
+                    removeItemLocal(selected.id);
+                  }
+                }}
+                disabled={submitting}
               >
-                {submitting ? "Saving…" : "Submit"}
+                {decisionDone ? "Close" : "Cancel"}
               </Button>
+              {!decisionDone ? (
+                <Button
+                  onClick={submitDecision}
+                  disabled={submitting || reason.trim().length < 2}
+                >
+                  {submitting ? "Saving…" : "Submit"}
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>

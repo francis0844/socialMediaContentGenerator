@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const [tab, setTab] = useState<"brand" | "billing">("brand");
+  const [tab, setTab] = useState<"brand" | "preferences" | "billing">("brand");
 
   const [brandForm, setBrandForm] = useState({
     brandName: "",
@@ -29,6 +29,26 @@ export default function SettingsPage() {
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [billingStatus, setBillingStatus] = useState<string>("trialing");
   const [trialInfo, setTrialInfo] = useState<string | null>(null);
+
+  const [preferences, setPreferences] = useState<
+    Array<{
+      id: string;
+      decision: "accept" | "reject";
+      reason: string;
+      aiResponse: string;
+      createdAt: string;
+      title: string | null;
+      platform: string | null;
+      contentType: string | null;
+    }>
+  >([]);
+  const [prefsLoading, setPrefsLoading] = useState(false);
+  const [prefsError, setPrefsError] = useState<string | null>(null);
+  const [prefModalOpen, setPrefModalOpen] = useState(false);
+  const [prefModalResponse, setPrefModalResponse] = useState<string | null>(null);
+  const [prefRemovingId, setPrefRemovingId] = useState<string | null>(null);
+  const [prefConfirmOpen, setPrefConfirmOpen] = useState(false);
+  const [prefConfirmId, setPrefConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -66,6 +86,21 @@ export default function SettingsPage() {
         // ignore
       } finally {
         setBillingLoading(false);
+      }
+
+      try {
+        setPrefsLoading(true);
+        const res = await fetch("/api/feedback", { cache: "no-store" });
+        const json = await res.json();
+        if (json?.ok && Array.isArray(json.items)) {
+          setPreferences(json.items);
+        } else {
+          setPrefsError("Failed to load preferences.");
+        }
+      } catch {
+        setPrefsError("Failed to load preferences.");
+      } finally {
+        setPrefsLoading(false);
       }
     }
 
@@ -184,6 +219,34 @@ export default function SettingsPage() {
     }
   }
 
+  async function removePreference(id: string) {
+    setPrefRemovingId(id);
+    setPrefModalResponse(null);
+    setPrefsError(null);
+    try {
+      const res = await fetch(`/api/feedback/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok || !json?.ok) throw new Error(json?.error ?? "REMOVE_FAILED");
+      setPreferences((prev) => prev.filter((p) => p.id !== id));
+      setPrefModalResponse(json.aiResponse ?? "Preference removed.");
+      setPrefModalOpen(true);
+    } catch (e) {
+      setPrefsError(e instanceof Error ? e.message : "Remove failed");
+    } finally {
+      setPrefRemovingId(null);
+    }
+  }
+
+  function openPrefConfirm(id: string) {
+    setPrefConfirmId(id);
+    setPrefConfirmOpen(true);
+  }
+
+  function closePrefConfirm() {
+    setPrefConfirmOpen(false);
+    setPrefConfirmId(null);
+  }
+
   return (
     <div className="space-y-6 text-slate-900">
       <div>
@@ -205,6 +268,17 @@ export default function SettingsPage() {
               onClick={() => setTab("brand")}
             >
               Brand Profile
+            </button>
+            <button
+              className={cn(
+                "w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition",
+                tab === "preferences"
+                  ? "bg-teal-500 text-white shadow-sm"
+                  : "border border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:text-slate-900",
+              )}
+              onClick={() => setTab("preferences")}
+            >
+              Preference Customization
             </button>
             <button
               className={cn(
@@ -349,6 +423,59 @@ export default function SettingsPage() {
             </div>
           ) : null}
 
+          {tab === "preferences" ? (
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-slate-800">Preference Customization</div>
+                  <div className="text-xs text-slate-500">
+                    The AI lists learned likes and dislikes here. You can only remove items.
+                  </div>
+                </div>
+                {prefsLoading ? <div className="text-xs text-slate-500">Loading…</div> : null}
+              </div>
+
+              {prefsError ? (
+                <div className="text-xs text-rose-600">{prefsError}</div>
+              ) : null}
+
+              {preferences.length ? (
+                <div className="divide-y divide-slate-100">
+                  {preferences.map((pref) => (
+                    <div key={pref.id} className="py-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            {pref.decision === "accept" ? "Like" : "Don't like"} •{" "}
+                            {pref.platform ?? "platform"} • {pref.contentType ?? "content"}
+                          </div>
+                          <div className="mt-1 text-sm font-semibold text-slate-900">
+                            {pref.title ?? "Untitled content"}
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">{new Date(pref.createdAt).toLocaleString()}</div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          disabled={prefRemovingId === pref.id}
+                          onClick={() => openPrefConfirm(pref.id)}
+                        >
+                          {prefRemovingId === pref.id ? "Removing…" : "Remove"}
+                        </Button>
+                      </div>
+                      <div className="mt-2 text-sm text-slate-600">
+                        {pref.reason}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500">No preferences logged yet.</div>
+              )}
+            </div>
+          ) : null}
+
           {tab === "billing" ? (
             <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center justify-between">
@@ -381,6 +508,62 @@ export default function SettingsPage() {
               </div>
 
               {billingMessage ? <div className="text-xs text-slate-600">{billingMessage}</div> : null}
+            </div>
+          ) : null}
+
+          {prefModalOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                <div className="text-sm text-slate-600">Preference updated</div>
+                <div className="mt-2 text-sm font-semibold text-slate-900">AI response</div>
+                <div className="mt-3 flex items-start gap-3">
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                    AI
+                  </div>
+                  <div className="max-w-[85%]">
+                    <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-slate-800 shadow-sm">
+                      {prefModalResponse ?? "Preference removed."}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 flex items-center justify-end">
+                  <Button variant="outline" onClick={() => setPrefModalOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {prefConfirmOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                <div className="text-sm text-slate-600">Remove preference</div>
+                <div className="mt-2 text-sm font-semibold text-slate-900">
+                  This will remove the selected preference from memory.
+                </div>
+                <div className="mt-2 text-sm text-slate-600">
+                  The AI will update its memory and confirm the change.
+                </div>
+                <div className="mt-6 flex items-center justify-end gap-2">
+                  <Button variant="outline" onClick={closePrefConfirm} disabled={!!prefRemovingId}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="rounded-full bg-rose-600 text-white hover:bg-rose-700"
+                    onClick={async () => {
+                      if (prefConfirmId) {
+                        await removePreference(prefConfirmId);
+                      }
+                      closePrefConfirm();
+                    }}
+                    disabled={!!prefRemovingId}
+                  >
+                    {prefRemovingId ? "Removing…" : "Remove"}
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : null}
         </div>
