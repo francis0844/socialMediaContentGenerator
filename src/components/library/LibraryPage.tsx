@@ -66,6 +66,9 @@ export function LibraryPage({ status }: { status: Status }) {
   const [undoReason, setUndoReason] = useState("");
   const [undoing, setUndoing] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"delete" | "regenerate" | null>(null);
 
   function toIsoEndOfDay(dateStr: string) {
     const d = new Date(dateStr);
@@ -142,6 +145,21 @@ export function LibraryPage({ status }: { status: Status }) {
     setDecisionOpen(true);
   }
 
+  function updateItemLocal(id: string, patch: Partial<Item>) {
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+    setSelected((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }
+
+  function removeItemLocal(id: string) {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    if (selected?.id === id) {
+      setPreviewOpen(false);
+      setDecisionOpen(false);
+      setUndoOpen(false);
+      setSelected(null);
+    }
+  }
+
   async function submitDecision() {
     if (!selected) return;
     setSubmitting(true);
@@ -156,7 +174,11 @@ export function LibraryPage({ status }: { status: Status }) {
       const data = raw as { ok?: boolean; error?: string; aiResponse?: string };
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? "DECISION_FAILED");
       setAiResponse(data.aiResponse ?? null);
-      await load();
+      const nextStatus = decision === "accept" ? "accepted" : "rejected";
+      updateItemLocal(selected.id, { status: nextStatus as Status });
+      if (status === "generated") {
+        removeItemLocal(selected.id);
+      }
     } catch (e) {
       setAiResponse(e instanceof Error ? e.message : "Decision failed");
     } finally {
@@ -168,6 +190,17 @@ export function LibraryPage({ status }: { status: Status }) {
     setSelected(item);
     setUndoReason("");
     setUndoOpen(true);
+  }
+
+  function openConfirm(action: "delete" | "regenerate", item: Item) {
+    setSelected(item);
+    setConfirmAction(action);
+    setConfirmOpen(true);
+  }
+
+  function closeConfirm() {
+    setConfirmOpen(false);
+    setConfirmAction(null);
   }
 
   async function submitUndo() {
@@ -183,7 +216,9 @@ export function LibraryPage({ status }: { status: Status }) {
       const data = raw as { ok?: boolean; error?: string };
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? "UNDO_FAILED");
       setUndoOpen(false);
-      await load();
+      if (status !== "generated") {
+        removeItemLocal(selected.id);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Undo failed");
     } finally {
@@ -192,8 +227,6 @@ export function LibraryPage({ status }: { status: Status }) {
   }
 
   async function deleteContent(item: Item) {
-    const ok = window.confirm("Delete this content? This cannot be undone.");
-    if (!ok) return;
     setDeletingId(item.id);
     try {
       const res = await fetch(`/api/content/${item.id}`, { method: "DELETE" });
@@ -206,12 +239,42 @@ export function LibraryPage({ status }: { status: Status }) {
         setUndoOpen(false);
         setSelected(null);
       }
-      await load(true);
+      removeItemLocal(item.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setDeletingId(null);
     }
+  }
+
+  async function regenerateImage(item: Item, mode: "retry" | "regenerate" = "regenerate") {
+    setRegeneratingId(item.id);
+    updateItemLocal(item.id, { imageStatus: "generating", imageError: null });
+    try {
+      const res = await fetch(`/api/generated-content/${item.id}/regenerate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
+      const raw: unknown = await res.json();
+      const data = raw as { ok?: boolean; error?: string };
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "REGENERATE_FAILED");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Regenerate failed");
+      updateItemLocal(item.id, { imageStatus: "failed", imageError: "Regenerate failed" });
+    } finally {
+      setRegeneratingId(null);
+    }
+  }
+
+  async function confirmActionHandler() {
+    if (!selected || !confirmAction) return;
+    if (confirmAction === "delete") {
+      await deleteContent(selected);
+    } else {
+      await regenerateImage(selected);
+    }
+    closeConfirm();
   }
 
   return (
@@ -305,8 +368,7 @@ export function LibraryPage({ status }: { status: Status }) {
                         variant="outline"
                         className="border-rose-200 bg-white text-rose-700 hover:bg-rose-100"
                         onClick={async () => {
-                          await fetch(`/api/generated-content/${i.id}/regenerate`, { method: "POST" });
-                          load(true);
+                          await regenerateImage(i, "retry");
                         }}
                       >
                         Retry image
@@ -341,30 +403,24 @@ export function LibraryPage({ status }: { status: Status }) {
                     onClick={() => openPreview(i)}
                     size="sm"
                     variant="outline"
-                    className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+                    className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                   >
                     Preview
                   </Button>
                   <Button
-                    onClick={() => {
-                      const ok = window.confirm("Regenerate image for this content?");
-                      if (!ok) return;
-                      fetch(`/api/generated-content/${i.id}/regenerate`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ mode: "regenerate" }),
-                      }).then(() => load(true));
-                    }}
+                    onClick={() => openConfirm("regenerate", i)}
                     size="sm"
                     variant="outline"
-                    className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+                    className="rounded-full border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    disabled={regeneratingId === i.id}
                   >
-                    Regenerate image
+                    {regeneratingId === i.id ? "Regenerating..." : "Regenerate image"}
                   </Button>
                   <Button
-                    onClick={() => deleteContent(i)}
+                    onClick={() => openConfirm("delete", i)}
                     size="sm"
                     variant="destructive"
+                    className="rounded-full bg-rose-600 text-white hover:bg-rose-700"
                     disabled={deletingId === i.id}
                   >
                     {deletingId === i.id ? "Deleting..." : "Delete"}
@@ -374,20 +430,29 @@ export function LibraryPage({ status }: { status: Status }) {
                 <div className="pt-2 flex flex-wrap gap-2">
                   {status === "generated" ? (
                     <>
-                      <Button onClick={() => openDecision(i, "accept")} size="sm">
+                      <Button
+                        onClick={() => openDecision(i, "accept")}
+                        size="sm"
+                        className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                      >
                         Accept
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+                        className="rounded-full border-rose-200 bg-white text-rose-700 hover:bg-rose-50 hover:text-rose-800"
                         onClick={() => openDecision(i, "reject")}
                       >
                         Reject
                       </Button>
                     </>
                   ) : (
-                    <Button variant="outline" size="sm" onClick={() => openUndo(i)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                      onClick={() => openUndo(i)}
+                    >
                       Move back to Generated
                     </Button>
                   )}
@@ -426,17 +491,23 @@ export function LibraryPage({ status }: { status: Status }) {
 
             {selected.status === "generated" ? (
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
-                <Button onClick={() => openDecision(selected, "accept")}>Accept</Button>
+                <Button
+                  onClick={() => openDecision(selected, "accept")}
+                  className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  Accept
+                </Button>
                 <Button
                   variant="outline"
-                  className="border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
+                  className="rounded-full border-rose-200 bg-white text-rose-700 hover:bg-rose-50"
                   onClick={() => openDecision(selected, "reject")}
                 >
                   Reject
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => deleteContent(selected)}
+                  className="rounded-full bg-rose-600 text-white hover:bg-rose-700"
+                  onClick={() => openConfirm("delete", selected)}
                   disabled={deletingId === selected.id}
                 >
                   {deletingId === selected.id ? "Deleting..." : "Delete"}
@@ -444,13 +515,17 @@ export function LibraryPage({ status }: { status: Status }) {
               </div>
             ) : (
               <div className="mt-6 flex items-center justify-end">
-                <Button variant="outline" onClick={() => openUndo(selected)}>
+                <Button
+                  variant="outline"
+                  className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  onClick={() => openUndo(selected)}
+                >
                   Move back to Generated
                 </Button>
                 <Button
                   variant="destructive"
-                  className="ml-2"
-                  onClick={() => deleteContent(selected)}
+                  className="ml-2 rounded-full bg-rose-600 text-white hover:bg-rose-700"
+                  onClick={() => openConfirm("delete", selected)}
                   disabled={deletingId === selected.id}
                 >
                   {deletingId === selected.id ? "Deleting..." : "Delete"}
@@ -528,6 +603,44 @@ export function LibraryPage({ status }: { status: Status }) {
               </Button>
               <Button onClick={submitUndo} disabled={undoing}>
                 {undoing ? "Undoing…" : "Move back"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {confirmOpen && selected && confirmAction ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="text-sm text-slate-600">
+              {confirmAction === "delete" ? "Delete content" : "Regenerate image"}
+            </div>
+            <div className="mt-2 text-sm font-semibold text-slate-900">
+              {selected.title ?? `${selected.contentType} • ${selected.platform}`}
+            </div>
+            <div className="mt-3 text-sm text-slate-600">
+              {confirmAction === "delete"
+                ? "This will permanently remove the content and its related assets. This cannot be undone."
+                : "This will generate a new image for this content. The current image will be replaced once complete."}
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={closeConfirm} disabled={deletingId === selected.id || regeneratingId === selected.id}>
+                Cancel
+              </Button>
+              <Button
+                variant={confirmAction === "delete" ? "destructive" : "default"}
+                className={confirmAction === "delete" ? "rounded-full bg-rose-600 text-white hover:bg-rose-700" : "rounded-full"}
+                onClick={confirmActionHandler}
+                disabled={deletingId === selected.id || regeneratingId === selected.id}
+              >
+                {confirmAction === "delete"
+                  ? deletingId === selected.id
+                    ? "Deleting..."
+                    : "Delete"
+                  : regeneratingId === selected.id
+                    ? "Regenerating..."
+                    : "Regenerate"}
               </Button>
             </div>
           </div>

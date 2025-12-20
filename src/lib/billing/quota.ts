@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 
 export const MONTHLY_GENERATION_LIMIT = 1000;
-export const TRIAL_DAILY_GENERATION_LIMIT = 15;
+export const TRIAL_DAILY_GENERATION_LIMIT = 5;
 
 export function isTrialActive(trialEndsAt: Date | null) {
   if (!trialEndsAt) return false;

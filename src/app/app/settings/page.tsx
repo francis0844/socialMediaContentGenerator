@@ -19,9 +19,11 @@ export default function SettingsPage() {
     goals: "",
     brandVoiceMode: "preset",
     voicePreset: "professional",
+    voiceDocUrl: null as string | null,
   });
   const [brandLoading, setBrandLoading] = useState(false);
   const [brandSaving, setBrandSaving] = useState(false);
+  const [voiceUploading, setVoiceUploading] = useState(false);
 
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export default function SettingsPage() {
             goals: json.profile.goals ?? "",
             brandVoiceMode: json.profile.brandVoiceMode ?? "preset",
             voicePreset: json.profile.voicePreset ?? "professional",
+            voiceDocUrl: json.profile.voiceDocUrl ?? null,
           });
         }
       } catch {
@@ -84,6 +87,72 @@ export default function SettingsPage() {
       setBillingMessage(e instanceof Error ? e.message : "Save failed");
     } finally {
       setBrandSaving(false);
+    }
+  }
+
+  async function uploadVoiceDoc(file: File) {
+    setBillingMessage(null);
+    setVoiceUploading(true);
+    try {
+      const signRes = await fetch("/api/cloudinary/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          folder: "smm/brand-voice",
+          resourceType: "raw",
+          allowedFormats: ["pdf", "docx", "txt"],
+        }),
+      });
+      const signRaw: unknown = await signRes.json();
+      const sign = signRaw as {
+        ok?: boolean;
+        error?: string;
+        timestamp?: number;
+        signature?: string;
+        folder?: string;
+        apiKey?: string;
+        cloudName?: string;
+        resourceType?: string;
+        allowedFormats?: string[] | null;
+      };
+      if (
+        !signRes.ok ||
+        !sign?.ok ||
+        !sign.apiKey ||
+        !sign.signature ||
+        !sign.cloudName ||
+        !sign.timestamp ||
+        !sign.folder
+      ) {
+        throw new Error(sign?.error ?? "SIGN_FAILED");
+      }
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("api_key", sign.apiKey);
+      form.append("timestamp", String(sign.timestamp));
+      form.append("signature", sign.signature);
+      form.append("folder", sign.folder);
+      if (sign.resourceType) form.append("resource_type", sign.resourceType);
+      if (sign.allowedFormats?.length) {
+        form.append("allowed_formats", sign.allowedFormats.join(","));
+      }
+
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${sign.cloudName}/${sign.resourceType ?? "raw"}/upload`,
+        { method: "POST", body: form },
+      );
+      const uploadedRaw: unknown = await uploadRes.json();
+      const uploaded = uploadedRaw as { secure_url?: string; error?: { message?: string } };
+      if (!uploadRes.ok) {
+        throw new Error(uploaded?.error?.message ?? "UPLOAD_FAILED");
+      }
+
+      setBrandForm((p) => ({ ...p, voiceDocUrl: uploaded.secure_url ?? null }));
+    } catch (e) {
+      setBillingMessage(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setVoiceUploading(false);
     }
   }
 
@@ -216,7 +285,13 @@ export default function SettingsPage() {
                   <select
                     className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={brandForm.brandVoiceMode}
-                    onChange={(e) => setBrandForm((p) => ({ ...p, brandVoiceMode: e.target.value }))}
+                    onChange={(e) =>
+                      setBrandForm((p) => ({
+                        ...p,
+                        brandVoiceMode: e.target.value,
+                        voiceDocUrl: e.target.value === "preset" ? null : p.voiceDocUrl,
+                      }))
+                    }
                   >
                     <option value="preset">Preset tone</option>
                     <option value="uploaded">Uploaded document</option>
@@ -239,8 +314,30 @@ export default function SettingsPage() {
                     </select>
                   </Label>
                 ) : (
-                  <div className="text-xs text-slate-500">
-                    Upload a voice document on the main Brand Profile page (S3/Cloudinary).
+                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
+                    <div className="font-semibold text-slate-700">Upload voice document</div>
+                    <div className="mt-1 text-slate-500">PDF, DOCX, or TXT. Required in uploaded mode.</div>
+                    <div className="mt-3">
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.txt"
+                        disabled={voiceUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void uploadVoiceDoc(file);
+                        }}
+                        className="block w-full text-xs text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-slate-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-700"
+                      />
+                    </div>
+                    {brandForm.voiceDocUrl ? (
+                      <div className="mt-2 break-all text-[11px] text-slate-500">
+                        Uploaded: {brandForm.voiceDocUrl}
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-[11px] text-slate-500">
+                        {voiceUploading ? "Uploading…" : "No document uploaded yet."}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
