@@ -21,6 +21,7 @@ type Item = {
   imageUrl?: string | null;
   imageAspectRatio?: string | null;
   imageModel?: string | null;
+  imagePrompt?: string | null;
   imageError?: string | null;
   createdAt: string;
   title: string | null;
@@ -421,6 +422,15 @@ export function LibraryPage({ status }: { status: Status }) {
                 imageUrl={selected.imageUrl}
                 initialPlatform={selected.platform as "facebook" | "instagram" | "pinterest" | "x"}
               />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Image prompt
+              </div>
+              <div className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">
+                {selected.imagePrompt ?? "Prompt not available yet."}
+              </div>
             </div>
 
             {selected.status === "generated" ? (

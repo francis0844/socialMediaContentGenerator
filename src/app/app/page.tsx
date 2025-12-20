@@ -221,7 +221,7 @@ export default function DashboardPage() {
             ).slice(0, 3).map((item, idx) => (
               <div key={item.id ?? idx} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="bg-slate-100">
-                  <div className="relative h-32 w-full overflow-hidden">
+                  <div className="relative w-full aspect-square overflow-hidden">
                     {item.imageStatus === "ready" && item.imageUrl ? (
                       <img
                         src={item.imageUrl}

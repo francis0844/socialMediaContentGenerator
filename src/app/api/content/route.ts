@@ -70,6 +70,7 @@ export async function GET(req: Request) {
         imageUrl: i.imageUrl,
         imageAspectRatio: i.imageAspectRatio,
         imageModel: i.imageModel,
+        imagePrompt: i.imagePrompt,
         createdAt: i.createdAt.toISOString(),
         title: i.title,
         platform: i.request.platform,
