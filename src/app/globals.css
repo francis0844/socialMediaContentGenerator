@@ -60,36 +60,34 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 222.2 24% 8%;
-    --foreground: 210 40% 96%;
+.dark {
+  --background: 222.2 24% 8%;
+  --foreground: 210 40% 96%;
 
-    --card: 222.2 24% 10%;
-    --card-foreground: 210 40% 96%;
+  --card: 222.2 24% 10%;
+  --card-foreground: 210 40% 96%;
 
-    --popover: 222.2 24% 10%;
-    --popover-foreground: 210 40% 96%;
+  --popover: 222.2 24% 10%;
+  --popover-foreground: 210 40% 96%;
 
-    --primary: 172 100% 42%;
-    --primary-foreground: 0 0% 100%;
+  --primary: 172 100% 42%;
+  --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 19% 16%;
-    --secondary-foreground: 210 40% 96%;
+  --secondary: 217 19% 16%;
+  --secondary-foreground: 210 40% 96%;
 
-    --muted: 217 19% 16%;
-    --muted-foreground: 215 16% 70%;
+  --muted: 217 19% 16%;
+  --muted-foreground: 215 16% 70%;
 
-    --accent: 226 83% 65%;
-    --accent-foreground: 210 40% 98%;
+  --accent: 226 83% 65%;
+  --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 210 40% 98%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 210 40% 98%;
 
-    --border: 217 20% 18%;
-    --input: 217 20% 18%;
-    --ring: 226 83% 65%;
-  }
+  --border: 217 20% 18%;
+  --input: 217 20% 18%;
+  --ring: 226 83% 65%;
 }
 
 body {
@@ -101,18 +99,25 @@ body {
   color-scheme: light;
 }
 
+.dark body {
+  background: radial-gradient(circle at 15% 15%, rgba(24, 40, 64, 0.55), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(14, 24, 40, 0.65), transparent 45%),
+    hsl(var(--background));
+  color-scheme: dark;
+}
+
 input,
 select,
 textarea {
-  background-color: #ffffff;
-  color: #0f172a;
-  border-color: #e2e8f0;
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
   outline: none;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #94a3b8;
+  color: hsl(var(--muted-foreground));
 }
 
 input:focus-visible,

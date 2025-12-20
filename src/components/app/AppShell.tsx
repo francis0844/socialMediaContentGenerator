@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { BarChart3, BookOpen, CheckCircle2, LayoutDashboard, LogOut, Menu, Search, Settings, Sparkles, Undo2 } from "lucide-react";
+import { BarChart3, BookOpen, CheckCircle2, LayoutDashboard, LogOut, Menu, Moon, Search, Settings, Sparkles, Sun, Undo2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 type NavItem = { href?: string; label: string; icon: ReactNode; onClick?: () => void };
 
@@ -50,6 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -96,15 +98,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!user) return null;
 
   return (
-    <div className="min-h-dvh bg-slate-50 text-slate-900">
+    <div className="min-h-dvh bg-background text-foreground">
       <div className="flex min-h-dvh">
-        <aside className="hidden w-[240px] flex-shrink-0 border-r border-slate-200 bg-white px-5 py-6 md:block">
+        <aside className="hidden w-[240px] flex-shrink-0 border-r border-border bg-card px-5 py-6 md:block">
           <div className="flex items-center gap-2">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-500 text-white shadow-lg shadow-teal-200">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-500 text-white shadow-lg shadow-teal-200/50">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-lg font-semibold tracking-tight text-slate-900">Lexus</div>
+              <div className="text-lg font-semibold tracking-tight text-foreground">Lexus</div>
               <div className="text-xs font-medium uppercase tracking-[0.3em] text-teal-600">Studio</div>
             </div>
           </div>
@@ -115,15 +117,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </div>
 
-          <div className="mt-auto pt-10 text-sm text-slate-500">
+          <div className="mt-auto pt-10 text-sm text-muted-foreground">
             {accountId ? <div className="text-xs">Account: {accountId}</div> : null}
           </div>
         </aside>
 
         <div className="flex flex-1 flex-col">
-          <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <header className="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 shadow-sm">
             <div className="flex flex-1 items-center gap-3">
-              <button className="md:hidden rounded-lg border border-slate-200 bg-white p-2 text-slate-600">
+              <button className="md:hidden rounded-lg border border-border bg-card p-2 text-muted-foreground">
                 <Menu className="h-5 w-5" />
               </button>
               <form
@@ -137,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
-                  className="w-full rounded-full border border-slate-200 bg-slate-50 px-10 py-2 text-sm outline-none transition focus:border-teal-300 focus:bg-white"
+                  className="w-full rounded-full border border-border bg-muted px-10 py-2 text-sm outline-none transition focus:border-teal-300 focus:bg-card"
                   placeholder="Search content"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -145,13 +147,20 @@ export function AppShell({ children }: { children: ReactNode }) {
               </form>
             </div>
             <div className="flex items-center gap-2">
-              <div className="hidden flex-col text-right text-xs text-slate-600 md:flex">
-                <span className="font-semibold text-slate-900">{user.email}</span>
-                <span className="text-slate-500">Account</span>
+              <button
+                onClick={toggleTheme}
+                className="inline-flex items-center justify-center rounded-full border border-border bg-card p-2 text-muted-foreground transition hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <div className="hidden flex-col text-right text-xs text-muted-foreground md:flex">
+                <span className="font-semibold text-foreground">{user.email}</span>
+                <span className="text-muted-foreground">Account</span>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="inline-flex items-center gap-2 rounded-full bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-teal-200 transition hover:-translate-y-px hover:shadow-lg"
+                className="inline-flex items-center gap-2 rounded-full bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-teal-200/60 transition hover:-translate-y-px hover:shadow-lg"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -159,12 +168,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          <main className="flex-1 bg-slate-50 px-4 py-6 md:px-8">
+          <main className="flex-1 bg-background px-4 py-6 md:px-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
         </div>
       </div>
-
     </div>
   );
 }

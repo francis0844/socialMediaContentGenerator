@@ -3,10 +3,30 @@ import "server-only";
 import { getOpenAIClient } from "@/lib/ai/client";
 import { getServerEnv } from "@/lib/env/server";
 
-type MemoryUpdateResult = {
-  bullet: string;
+type MemoryResponseResult = {
   user_response: string;
 };
+
+type MemorySummaryResult = {
+  memory_summary: string;
+  user_response: string;
+};
+
+function buildPreferenceBullet(decision: "accept" | "reject", reason: string) {
+  let text = reason.trim();
+  text = text.replace(/^reason:\s*/i, "");
+  text = text.replace(/^i\s+(do\s+not|don't)\s+like\s+/i, "");
+  text = text.replace(/^i\s+like\s+/i, "");
+  text = text.replace(/^because\s+/i, "");
+  text = text.replace(/\s+/g, " ");
+  text = text.replace(/[.?!]+$/g, "");
+
+  const prefix = decision === "reject" ? "User avoids " : "User prefers ";
+  if (!text) {
+    return `${prefix}this approach.`;
+  }
+  return `${prefix}${text}.`;
+}
 
 export async function updateMemorySummary(params: {
   previousSummary: string;
@@ -19,25 +39,16 @@ export async function updateMemorySummary(params: {
   const system = [
     "You maintain a compact per-account memory summary for a social content generator.",
     "Only store style/voice/tone/structure/topic preferences. Never store personal data.",
-    "Create exactly ONE new preference bullet derived ONLY from the user's reason.",
-    "Do not add new details or inferred rationale. Avoid platform-specific mentions unless explicitly stated by the user.",
-    "Each bullet should start with 'User prefers...' or 'User avoids...'. Keep each bullet to one sentence.",
-    "Do NOT merge, dedupe, or rewrite prior bullets. Preserve all existing bullets and add exactly one new bullet per feedback.",
     "Return ONLY valid JSON.",
-    'Schema: {"bullet":"...","user_response":"..."}',
+    'Schema: {"user_response":"..."}',
     'user_response should be a friendly 1-2 sentence reply that sounds human. Start with a learning statement like "I learned that..." or "I will prioritize...". Then state how you will apply it next time. Do NOT repeat or paraphrase the user\'s reason verbatim.',
   ].join("\n");
 
   const user = [
-    "Update the memory summary based on user feedback.",
+    "Write a brief response acknowledging what was learned from the user's reason.",
     "",
     `Feedback decision: ${params.decision}`,
     `Reason: ${params.reason}`,
-    "",
-    "If decision is accept, add exactly one 'User prefers...' bullet that mirrors the user's reason.",
-    "If decision is reject, add exactly one 'User avoids...' bullet that mirrors the user's reason.",
-    "The new bullet must explicitly mention the key issue(s) from the reason (e.g., text accuracy, readability, tone). Do not generalize beyond the reason.",
-    "Produce the new updated summary.",
   ].join("\n");
 
   const completion = await client.chat.completions.create({
@@ -51,17 +62,12 @@ export async function updateMemorySummary(params: {
   });
 
   const text = completion.choices[0]?.message?.content ?? "{}";
-  const json = JSON.parse(text) as Partial<MemoryUpdateResult>;
-  let bullet = (json.bullet ?? "").trim();
+  const json = JSON.parse(text) as Partial<MemoryResponseResult>;
   const user_response = (json.user_response ?? "").trim();
 
-  if (!bullet) throw new Error("MEMORY_UPDATE_FAILED");
   if (!user_response) throw new Error("MEMORY_RESPONSE_FAILED");
 
-  if (!/^User (prefers|avoids)\b/i.test(bullet)) {
-    const prefix = params.decision === "reject" ? "User avoids " : "User prefers ";
-    bullet = `${prefix}${bullet.replace(/\.$/, "")}.`;
-  }
+  const bullet = buildPreferenceBullet(params.decision, params.reason);
 
   const nextSummary = [params.previousSummary.trim(), `- ${bullet}`]
     .filter(Boolean)
@@ -120,7 +126,7 @@ export async function removeMemoryPreference(params: {
   });
 
   const text = completion.choices[0]?.message?.content ?? "{}";
-  const json = JSON.parse(text) as Partial<MemoryUpdateResult>;
+  const json = JSON.parse(text) as Partial<MemorySummaryResult>;
   const memory_summary = (json.memory_summary ?? "").trim();
   const user_response = (json.user_response ?? "").trim();
 
@@ -171,7 +177,7 @@ export async function removeMemoryPreferenceByText(params: {
   });
 
   const text = completion.choices[0]?.message?.content ?? "{}";
-  const json = JSON.parse(text) as Partial<MemoryUpdateResult>;
+  const json = JSON.parse(text) as Partial<MemorySummaryResult>;
   const memory_summary = (json.memory_summary ?? "").trim();
   const user_response = (json.user_response ?? "").trim();
 
