@@ -55,6 +55,7 @@ export function buildMarketingGraphicPrompt(input: MarketingPromptInput) {
     refLines.length ? `Product/mockup references:\n${refLines.join("\n")}` : null,
     styleLines.length ? `Style samples to mimic vibe (not copy trademarks):\n${styleLines.join("\n")}` : null,
     content.keywordsAvoid ? `Avoid: ${content.keywordsAvoid}` : null,
+    "Text rules: keep on-image copy short and factual; use only the most important phrases; avoid long sentences or extra words; do not invent claims.",
     "Layout guidance: keep safe margins; avoid text touching edges; ensure legible contrast between text and background; place CTA with clear separation.",
     "If product/mockup images exist, feature them prominently.",
     "Mimic the composition/typography vibe of style samples without copying logos or trademarks.",

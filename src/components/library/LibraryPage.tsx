@@ -424,15 +424,6 @@ export function LibraryPage({ status }: { status: Status }) {
               />
             </div>
 
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Image prompt
-              </div>
-              <div className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">
-                {selected.imagePrompt ?? "Prompt not available yet."}
-              </div>
-            </div>
-
             {selected.status === "generated" ? (
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
                 <Button onClick={() => openDecision(selected, "accept")}>Accept</Button>

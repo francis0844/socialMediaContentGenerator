@@ -76,21 +76,7 @@ export function XPostPreview({
                   imageUrl={output.type === "graphic" ? imageUrl : null}
                   className="rounded-2xl"
                 />
-                {output.type === "graphic" && output.visual_concept ? (
-                  <div
-                    className={cn(
-                      "mt-2 rounded-lg border px-3 py-2 text-xs",
-                      theme === "light"
-                        ? "border-slate-200 bg-slate-50 text-slate-600"
-                        : "border-white/10 bg-white/5 text-white/70",
-                    )}
-                  >
-                    <div className={cn("text-[10px] uppercase tracking-wide", theme === "light" ? "text-slate-500" : "text-white/60")}>
-                      Visual concept
-                    </div>
-                    <div className="mt-1">{output.visual_concept}</div>
-                  </div>
-                ) : null}
+                {null}
               </div>
             ) : null}
 
