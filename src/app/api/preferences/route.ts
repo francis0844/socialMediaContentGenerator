@@ -17,6 +17,15 @@ function extractPreferences(summary: string | null) {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => line.replace(/^[-*•]\s+/, ""))
+    .map((line) => {
+      const firstSentence = line.split(/(?<=[.!?])\s+/)[0] ?? line;
+      return firstSentence.trim();
+    })
+    .map((line) => {
+      if (/^User (prefers|avoids)/i.test(line)) return line;
+      return `User prefers ${line.replace(/^User\s+/i, "").replace(/\.$/, "")}.`;
+    })
+    .map((line) => (line.length > 180 ? `${line.slice(0, 177).trim()}...` : line))
     .filter(Boolean);
 }
 

@@ -22,10 +22,12 @@ export async function updateMemorySummary(params: {
   const system = [
     "You maintain a compact per-account memory summary for a social content generator.",
     "Only store style/voice/tone/structure/topic preferences. Never store personal data.",
-    "Keep it short and actionable (max ~10 bullet lines, <= 1200 characters).",
+    "Memory summary should be 1-6 short bullet preference statements derived ONLY from the user's reason.",
+    "Do not add new details or inferred rationale. Avoid platform-specific mentions unless explicitly stated by the user.",
+    "Each bullet should start with 'User prefers...' or 'User avoids...'. Keep each bullet to one sentence.",
     "Return ONLY valid JSON.",
     'Schema: {"memory_summary":"...","user_response":"..."}',
-    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with either "I like this content, learn from it." or "I don\'t like this content, learn from it." Then state the key learning from the reason (not a rewrite of the reason) and how you will apply it next time.',
+    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with either "I like this content, learn from it." or "I don\'t like this content, learn from it." Then state a generalized learning (a preference statement like "I will favor vibrant, high-contrast visuals" or "I will avoid long captions") and how you will apply it next time. Do NOT repeat or paraphrase the user\'s reason verbatim.',
   ].join("\n");
 
   const user = [
