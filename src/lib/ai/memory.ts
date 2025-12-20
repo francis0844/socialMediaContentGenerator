@@ -42,7 +42,9 @@ export async function updateMemorySummary(params: {
     `Platform: ${params.platform}`,
     `Output JSON: ${JSON.stringify(params.outputJson)}`,
     "",
-    "If decision is accept, add/merge 'User prefers...' bullets. If decision is reject, add/merge 'User avoids...' bullets.",
+    "If decision is accept, add exactly one 'User prefers...' bullet that mirrors the user's reason.",
+    "If decision is reject, add exactly one 'User avoids...' bullet that mirrors the user's reason.",
+    "The new bullet must explicitly mention the key issue(s) from the reason (e.g., text accuracy, readability, tone). Do not generalize beyond the reason.",
     "Produce the new updated summary.",
   ].join("\n");
 
