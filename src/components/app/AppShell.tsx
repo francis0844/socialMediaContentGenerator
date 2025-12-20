@@ -24,15 +24,15 @@ function NavLink({ href, label, icon, onClick }: NavItem) {
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all w-full",
         active
-          ? "bg-teal-50 text-teal-700 shadow-[0_8px_24px_rgba(16,185,165,0.15)]"
-          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+          ? "bg-teal-500/10 text-teal-600 shadow-[0_8px_24px_rgba(16,185,165,0.18)]"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
         "cursor-pointer",
       )}
     >
       <span
         className={cn(
           "grid h-9 w-9 place-items-center rounded-lg border text-teal-600 transition",
-          active ? "border-teal-200 bg-white" : "border-slate-200 bg-white",
+          active ? "border-teal-200 bg-card" : "border-border bg-card",
         )}
       >
         {icon}
@@ -89,8 +89,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-slate-50 text-slate-900">
-        <div className="mx-auto max-w-screen-xl px-6 py-12 text-sm text-slate-600">Loading…</div>
+      <div className="min-h-dvh bg-background text-foreground">
+        <div className="mx-auto max-w-screen-xl px-6 py-12 text-sm text-muted-foreground">Loading…</div>
       </div>
     );
   }
@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   router.push(`/app/library/generated?q=${encodeURIComponent(term)}`);
                 }}
               >
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   className="w-full rounded-full border border-border bg-muted px-10 py-2 text-sm outline-none transition focus:border-teal-300 focus:bg-card"
                   placeholder="Search content"

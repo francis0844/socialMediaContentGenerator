@@ -256,21 +256,21 @@ export default function BrandProfilePage() {
   }
 
   if (loading) {
-    return <div className="text-sm text-slate-600">Loading brand profile…</div>;
+    return <div className="text-sm text-muted-foreground">Loading brand profile…</div>;
   }
 
   return (
-    <div className="text-slate-900">
+    <div className="text-foreground">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Brand Profile</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-muted-foreground">
             Set your brand once. The generator uses this profile every time.
           </p>
           {completeness ? (
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               Completeness:{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-foreground">
                 {completeness.completedCount}/{completeness.requiredCount}
               </span>
               {completeness.complete ? " (ready)" : null}
@@ -294,39 +294,39 @@ export default function BrandProfilePage() {
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <label className="block text-sm">
-          <div className="mb-2 text-slate-600">Brand name *</div>
+          <div className="mb-2 text-muted-foreground">Brand name *</div>
           <input
             value={profile.brandName}
             onChange={(e) => setProfile((p) => ({ ...p, brandName: e.target.value }))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none focus:border-indigo-400"
           />
         </label>
 
         <label className="block text-sm">
-          <div className="mb-2 text-slate-600">Niche / industry *</div>
+          <div className="mb-2 text-muted-foreground">Niche / industry *</div>
           <input
             value={profile.niche}
             onChange={(e) => setProfile((p) => ({ ...p, niche: e.target.value }))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none focus:border-indigo-400"
           />
         </label>
 
         <label className="block text-sm md:col-span-2">
-          <div className="mb-2 text-slate-600">Company overview *</div>
+          <div className="mb-2 text-muted-foreground">Company overview *</div>
           <textarea
             value={profile.companyOverview}
             onChange={(e) =>
               setProfile((p) => ({ ...p, companyOverview: e.target.value }))
             }
             rows={5}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none focus:border-indigo-400"
           />
         </label>
 
         <div className="md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-sm text-slate-600">Logo (optional)</div>
-            <label className="rounded-full border border-slate-200 px-4 py-2 text-sm hover:bg-slate-100">
+            <div className="text-sm text-muted-foreground">Logo (optional)</div>
+            <label className="rounded-full border border-border px-4 py-2 text-sm hover:bg-muted">
               <input
                 type="file"
                 accept="image/*"
@@ -341,45 +341,45 @@ export default function BrandProfilePage() {
             </label>
           </div>
           {profile.logoUrl ? (
-            <div className="mt-3 text-sm break-all text-slate-600">
-              <span className="text-slate-900">Current:</span> {profile.logoUrl}
+            <div className="mt-3 text-sm break-all text-muted-foreground">
+              <span className="text-foreground">Current:</span> {profile.logoUrl}
             </div>
           ) : (
-            <div className="mt-3 text-sm text-slate-500">
+            <div className="mt-3 text-sm text-muted-foreground">
               Upload will store a URL in your brand profile.
             </div>
           )}
         </div>
 
         <label className="block text-sm">
-          <div className="mb-2 text-slate-600">Target audience *</div>
+          <div className="mb-2 text-muted-foreground">Target audience *</div>
           <input
             value={profile.targetAudience}
             onChange={(e) =>
               setProfile((p) => ({ ...p, targetAudience: e.target.value }))
             }
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none focus:border-indigo-400"
             placeholder="Demographics + psychographics"
           />
         </label>
 
         <label className="block text-sm">
-          <div className="mb-2 text-slate-600">Primary goals *</div>
+          <div className="mb-2 text-muted-foreground">Primary goals *</div>
           <input
             value={profile.goals}
             onChange={(e) => setProfile((p) => ({ ...p, goals: e.target.value }))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-400"
+            className="w-full rounded-xl border border-border bg-card px-4 py-3 outline-none focus:border-indigo-400"
             placeholder="Awareness, leads, sales, community…"
           />
         </label>
 
         <div className="md:col-span-2">
-          <div className="text-sm text-slate-600">Brand voice *</div>
+          <div className="text-sm text-muted-foreground">Brand voice *</div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <label className="block text-sm">
-              <div className="mb-2 text-slate-600">Mode</div>
+              <div className="mb-2 text-muted-foreground">Mode</div>
               <select
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-400"
+                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-indigo-400"
                 value={profile.brandVoiceMode}
                 onChange={(e) =>
                   setProfile((p) => ({
@@ -395,9 +395,9 @@ export default function BrandProfilePage() {
 
             {profile.brandVoiceMode === "preset" ? (
               <label className="block text-sm">
-                <div className="mb-2 text-slate-600">Preset</div>
+                <div className="mb-2 text-muted-foreground">Preset</div>
                 <select
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-400"
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-indigo-400"
                   value={profile.voicePreset ?? "professional"}
                   onChange={(e) =>
                     setProfile((p) => ({
@@ -415,8 +415,8 @@ export default function BrandProfilePage() {
                 </select>
               </label>
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm text-slate-600">
+              <div className="rounded-2xl border border-border bg-muted p-4">
+                <div className="text-sm text-muted-foreground">
                   Upload voice doc (pdf, docx, txt)
                 </div>
                 <div className="mt-3">
@@ -428,15 +428,15 @@ export default function BrandProfilePage() {
                       const file = e.target.files?.[0];
                       if (file) void uploadVoiceDoc(file);
                     }}
-                    className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
+                    className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-full file:border-0 file:bg-card file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
                   />
                 </div>
                 {profile.voiceDocUrl ? (
-                  <div className="mt-3 text-xs text-slate-500 break-all">
+                  <div className="mt-3 text-xs text-muted-foreground break-all">
                     Uploaded: {profile.voiceDocUrl}
                   </div>
                 ) : (
-                  <div className="mt-3 text-xs text-slate-500">
+                  <div className="mt-3 text-xs text-muted-foreground">
                     Required in uploaded mode.
                   </div>
                 )}
@@ -447,7 +447,7 @@ export default function BrandProfilePage() {
 
         <div className="md:col-span-2">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-600">Brand colors</div>
+            <div className="text-sm text-muted-foreground">Brand colors</div>
             <button
               type="button"
               onClick={() =>
@@ -456,7 +456,7 @@ export default function BrandProfilePage() {
                   colors: [...(p.colors ?? []), { name: "", hex: "" }],
                 }))
               }
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm hover:bg-white/10"
+              className="rounded-full border border-border px-4 py-2 text-sm hover:bg-card/10"
             >
               Add color
             </button>
@@ -476,7 +476,7 @@ export default function BrandProfilePage() {
                         ),
                       }))
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-400"
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-indigo-400"
                     placeholder="Name"
                   />
                   <input
@@ -489,7 +489,7 @@ export default function BrandProfilePage() {
                         ),
                       }))
                     }
-                    className="w-40 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-400"
+                    className="w-40 rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-indigo-400"
                     placeholder="#000000"
                   />
                   <button
@@ -500,7 +500,7 @@ export default function BrandProfilePage() {
                         colors: (p.colors ?? []).filter((_, i) => i !== idx),
                       }))
                     }
-                    className="rounded-xl border border-slate-200 px-3 text-sm text-slate-600 hover:bg-white/10"
+                    className="rounded-xl border border-border px-3 text-sm text-muted-foreground hover:bg-card/10"
                     aria-label="Remove color"
                   >
                     ✕
@@ -509,7 +509,7 @@ export default function BrandProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="mt-3 text-sm text-slate-500">
+            <div className="mt-3 text-sm text-muted-foreground">
               Optional — add hex codes and names (e.g., “Gold #C9A227”).
             </div>
           )}

@@ -9,7 +9,7 @@ export function Landing() {
   const loading = status === "loading";
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900">
+    <div className="min-h-dvh bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <header className="flex items-center justify-between">
           <div className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-600">
@@ -19,7 +19,7 @@ export function Landing() {
             {loading ? null : (
               <Link
                 href={user ? "/app" : "/login"}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:-translate-y-px hover:shadow-md"
               >
                 {user ? "Open Studio" : "Sign in"}
               </Link>
@@ -32,10 +32,10 @@ export function Landing() {
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
               AI Content Studio · Lexus
             </div>
-            <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-slate-900 md:text-5xl">
+            <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
               Social Media Magic Generator
             </h1>
-            <p className="mt-5 max-w-xl text-base text-slate-600">
+            <p className="mt-5 max-w-xl text-base text-muted-foreground">
               Generate platform-ready posts for your business in minutes. Accept or reject
               outputs with rationale — the studio learns per account so content gets sharper
               over time.
@@ -50,27 +50,27 @@ export function Landing() {
               </Link>
               <Link
                 href={user ? "/app" : "/login"}
-                className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-px hover:shadow-md hover:bg-slate-100"
+                className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm transition hover:-translate-y-px hover:shadow-md hover:bg-muted"
               >
                 {user ? "Go to app" : "Sign in"}
               </Link>
             </div>
 
-            <div className="mt-10 grid max-w-xl grid-cols-2 gap-6 text-sm text-slate-700">
+            <div className="mt-10 grid max-w-xl grid-cols-2 gap-6 text-sm text-muted-foreground">
               <div>
-                <div className="text-slate-900 font-semibold">Platforms</div>
+                <div className="text-foreground font-semibold">Platforms</div>
                 <div>Facebook • Instagram • Pinterest • X</div>
               </div>
               <div>
-                <div className="text-slate-900 font-semibold">Plan</div>
+                <div className="text-foreground font-semibold">Plan</div>
                 <div>$120/mo • 1000 generations</div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-100/60">
-            <div className="text-sm font-semibold text-slate-800">What you get</div>
-            <ul className="mt-4 space-y-3 text-sm text-slate-600">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-xl shadow-indigo-100/20">
+            <div className="text-sm font-semibold text-foreground">What you get</div>
+            <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start gap-3">
                 <span className="mt-1 size-2 rounded-full bg-indigo-500" />
                 <span>Brand profile: niche, voice, goals, colors, logo.</span>

@@ -22,7 +22,7 @@ export function DeviceToggle({
         className={
           value === "desktop"
             ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
-            : "bg-white text-slate-800 hover:bg-slate-100"
+            : "bg-card text-foreground hover:bg-muted"
         }
         onClick={() => onChange("desktop")}
       >
@@ -35,7 +35,7 @@ export function DeviceToggle({
         className={
           value === "mobile"
             ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
-            : "bg-white text-slate-800 hover:bg-slate-100"
+            : "bg-card text-foreground hover:bg-muted"
         }
         onClick={() => onChange("mobile")}
       >

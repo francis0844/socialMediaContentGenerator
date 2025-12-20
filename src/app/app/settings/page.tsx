@@ -248,22 +248,22 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 text-slate-900">
+    <div className="space-y-6 text-foreground">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">Manage brand profile and billing.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Manage brand profile and billing.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-0 rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="border-b border-slate-200 bg-slate-50 p-4 md:border-b-0 md:border-r">
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Sections</div>
+      <div className="grid grid-cols-1 gap-0 rounded-2xl border border-border bg-card shadow-sm md:grid-cols-[260px_minmax(0,1fr)]">
+        <div className="border-b border-border bg-muted p-4 md:border-b-0 md:border-r">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Sections</div>
           <div className="mt-3 space-y-2">
             <button
               className={cn(
                 "w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition",
                 tab === "brand"
                   ? "bg-teal-500 text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:text-slate-900",
+                  : "border border-border bg-card text-muted-foreground hover:border-teal-200 hover:text-foreground",
               )}
               onClick={() => setTab("brand")}
             >
@@ -274,7 +274,7 @@ export default function SettingsPage() {
                 "w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition",
                 tab === "preferences"
                   ? "bg-teal-500 text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:text-slate-900",
+                  : "border border-border bg-card text-muted-foreground hover:border-teal-200 hover:text-foreground",
               )}
               onClick={() => setTab("preferences")}
             >
@@ -285,7 +285,7 @@ export default function SettingsPage() {
                 "w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition",
                 tab === "billing"
                   ? "bg-teal-500 text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:text-slate-900",
+                  : "border border-border bg-card text-muted-foreground hover:border-teal-200 hover:text-foreground",
               )}
               onClick={() => setTab("billing")}
             >
@@ -296,18 +296,18 @@ export default function SettingsPage() {
 
         <div className="p-6">
           {tab === "brand" ? (
-            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="space-y-4 rounded-xl border border-border bg-muted p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-800">Brand Profile</div>
-                  <div className="text-xs text-slate-500">Required to generate on-brand content.</div>
+                  <div className="text-sm font-semibold text-foreground">Brand Profile</div>
+                  <div className="text-xs text-muted-foreground">Required to generate on-brand content.</div>
                 </div>
-                {brandLoading ? <div className="text-xs text-slate-500">Loading…</div> : null}
+                {brandLoading ? <div className="text-xs text-muted-foreground">Loading…</div> : null}
               </div>
 
               <div className="grid gap-3 text-sm md:grid-cols-2">
                 <Label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-600">Brand name</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Brand name</span>
                   <Input
                     value={brandForm.brandName}
                     onChange={(e) => setBrandForm((p) => ({ ...p, brandName: e.target.value }))}
@@ -315,7 +315,7 @@ export default function SettingsPage() {
                   />
                 </Label>
                 <Label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-600">Niche / industry</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Niche / industry</span>
                   <Input
                     value={brandForm.niche}
                     onChange={(e) => setBrandForm((p) => ({ ...p, niche: e.target.value }))}
@@ -325,7 +325,7 @@ export default function SettingsPage() {
               </div>
 
               <Label className="space-y-1">
-                <span className="text-xs font-semibold text-slate-600">Company overview</span>
+                <span className="text-xs font-semibold text-muted-foreground">Company overview</span>
                 <Textarea
                   rows={6}
                   value={brandForm.companyOverview}
@@ -336,7 +336,7 @@ export default function SettingsPage() {
 
               <div className="grid gap-3 text-sm md:grid-cols-2">
                 <Label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-600">Target audience</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Target audience</span>
                   <Input
                     value={brandForm.targetAudience}
                     onChange={(e) => setBrandForm((p) => ({ ...p, targetAudience: e.target.value }))}
@@ -344,7 +344,7 @@ export default function SettingsPage() {
                   />
                 </Label>
                 <Label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-600">Goals</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Goals</span>
                   <Input
                     value={brandForm.goals}
                     onChange={(e) => setBrandForm((p) => ({ ...p, goals: e.target.value }))}
@@ -355,9 +355,9 @@ export default function SettingsPage() {
 
               <div className="grid gap-3 text-sm md:grid-cols-2">
                 <Label className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-600">Brand voice mode</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Brand voice mode</span>
                   <select
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
                     value={brandForm.brandVoiceMode}
                     onChange={(e) =>
                       setBrandForm((p) => ({
@@ -374,9 +374,9 @@ export default function SettingsPage() {
 
                 {brandForm.brandVoiceMode === "preset" ? (
                   <Label className="space-y-1">
-                    <span className="text-xs font-semibold text-slate-600">Tone preset</span>
+                    <span className="text-xs font-semibold text-muted-foreground">Tone preset</span>
                     <select
-                      className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
                       value={brandForm.voicePreset}
                       onChange={(e) => setBrandForm((p) => ({ ...p, voicePreset: e.target.value }))}
                     >
@@ -388,9 +388,9 @@ export default function SettingsPage() {
                     </select>
                   </Label>
                 ) : (
-                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
-                    <div className="font-semibold text-slate-700">Upload voice document</div>
-                    <div className="mt-1 text-slate-500">PDF, DOCX, or TXT. Required in uploaded mode.</div>
+                  <div className="rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
+                    <div className="font-semibold text-muted-foreground">Upload voice document</div>
+                    <div className="mt-1 text-muted-foreground">PDF, DOCX, or TXT. Required in uploaded mode.</div>
                     <div className="mt-3">
                       <input
                         type="file"
@@ -400,15 +400,15 @@ export default function SettingsPage() {
                           const file = e.target.files?.[0];
                           if (file) void uploadVoiceDoc(file);
                         }}
-                        className="block w-full text-xs text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-slate-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-700"
+                        className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-full file:border-0 file:bg-muted file:px-4 file:py-2 file:text-xs file:font-semibold file:text-muted-foreground"
                       />
                     </div>
                     {brandForm.voiceDocUrl ? (
-                      <div className="mt-2 break-all text-[11px] text-slate-500">
+                      <div className="mt-2 break-all text-[11px] text-muted-foreground">
                         Uploaded: {brandForm.voiceDocUrl}
                       </div>
                     ) : (
-                      <div className="mt-2 text-[11px] text-slate-500">
+                      <div className="mt-2 text-[11px] text-muted-foreground">
                         {voiceUploading ? "Uploading…" : "No document uploaded yet."}
                       </div>
                     )}
@@ -419,20 +419,20 @@ export default function SettingsPage() {
               <Button onClick={saveBrand} disabled={brandSaving} className="w-full md:w-auto">
                 {brandSaving ? "Saving…" : "Save brand"}
               </Button>
-              {billingMessage ? <div className="text-xs text-slate-600">{billingMessage}</div> : null}
+              {billingMessage ? <div className="text-xs text-muted-foreground">{billingMessage}</div> : null}
             </div>
           ) : null}
 
           {tab === "preferences" ? (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+            <div className="space-y-3 rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-800">Preference Customization</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm font-semibold text-foreground">Preference Customization</div>
+                  <div className="text-xs text-muted-foreground">
                     The AI lists learned likes and dislikes here. You can only remove items.
                   </div>
                 </div>
-                {prefsLoading ? <div className="text-xs text-slate-500">Loading…</div> : null}
+                {prefsLoading ? <div className="text-xs text-muted-foreground">Loading…</div> : null}
               </div>
 
               {prefsError ? (
@@ -440,20 +440,20 @@ export default function SettingsPage() {
               ) : null}
 
               {preferences.length ? (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border">
                   {preferences.map((pref) => (
                     <div key={pref.id} className="py-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                             Preference
                           </div>
-                          <div className="mt-1 text-sm text-slate-900">{pref.text}</div>
+                          <div className="mt-1 text-sm text-foreground">{pref.text}</div>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          className="rounded-full border-border bg-card text-muted-foreground hover:bg-muted"
                           disabled={prefRemovingId === pref.id}
                           onClick={() => openPrefConfirm(pref.id)}
                         >
@@ -464,26 +464,26 @@ export default function SettingsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-slate-500">No preferences logged yet.</div>
+                <div className="text-sm text-muted-foreground">No preferences logged yet.</div>
               )}
             </div>
           ) : null}
 
           {tab === "billing" ? (
-            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="space-y-4 rounded-xl border border-border bg-muted p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-800">Billing</div>
-                  <div className="text-xs text-slate-500">Manage your subscription and customer portal.</div>
+                  <div className="text-sm font-semibold text-foreground">Billing</div>
+                  <div className="text-xs text-muted-foreground">Manage your subscription and customer portal.</div>
                 </div>
-                {billingLoading ? <div className="text-xs text-slate-500">Loading…</div> : null}
+                {billingLoading ? <div className="text-xs text-muted-foreground">Loading…</div> : null}
               </div>
 
-              <div className="text-sm text-slate-600">
-                Status: <span className="font-semibold text-slate-900">{billingStatus}</span>
+              <div className="text-sm text-muted-foreground">
+                Status: <span className="font-semibold text-foreground">{billingStatus}</span>
               </div>
-              <div className="text-sm text-slate-600">
-                Trial: <span className="font-semibold text-slate-900">{trialInfo ?? "—"}</span>
+              <div className="text-sm text-muted-foreground">
+                Trial: <span className="font-semibold text-foreground">{trialInfo ?? "—"}</span>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
@@ -494,27 +494,27 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={openPortal}
                   disabled={billingLoading}
-                  className="border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
+                  className="border-border bg-card text-foreground hover:bg-muted"
                 >
                   Customer portal
                 </Button>
               </div>
 
-              {billingMessage ? <div className="text-xs text-slate-600">{billingMessage}</div> : null}
+              {billingMessage ? <div className="text-xs text-muted-foreground">{billingMessage}</div> : null}
             </div>
           ) : null}
 
           {prefModalOpen ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                <div className="text-sm text-slate-600">Preference updated</div>
-                <div className="mt-2 text-sm font-semibold text-slate-900">AI response</div>
+              <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+                <div className="text-sm text-muted-foreground">Preference updated</div>
+                <div className="mt-2 text-sm font-semibold text-foreground">AI response</div>
                 <div className="mt-3 flex items-start gap-3">
                   <div className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
                     AI
                   </div>
                   <div className="max-w-[85%]">
-                    <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-slate-800 shadow-sm">
+                    <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-foreground shadow-sm">
                       {prefModalResponse ?? "Preference removed."}
                     </div>
                   </div>
@@ -530,12 +530,12 @@ export default function SettingsPage() {
 
           {prefConfirmOpen ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                <div className="text-sm text-slate-600">Remove preference</div>
-                <div className="mt-2 text-sm font-semibold text-slate-900">
+              <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+                <div className="text-sm text-muted-foreground">Remove preference</div>
+                <div className="mt-2 text-sm font-semibold text-foreground">
                   This will remove the selected preference from memory.
                 </div>
-                <div className="mt-2 text-sm text-slate-600">
+                <div className="mt-2 text-sm text-muted-foreground">
                   The AI will update its memory and confirm the change.
                 </div>
                 <div className="mt-6 flex items-center justify-end gap-2">

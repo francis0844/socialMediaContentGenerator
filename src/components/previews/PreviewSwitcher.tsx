@@ -78,13 +78,10 @@ export function PreviewSwitcher({
     }
   }, [brand, device, output, platform, theme]);
 
-  const containerStyles =
-    theme === "light"
-      ? "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900"
-      : "rounded-2xl border border-slate-200 bg-white p-4 shadow-md text-slate-900";
+  const containerStyles = "rounded-2xl border border-border bg-card p-4 shadow-md text-foreground";
 
-  const summaryText = "text-slate-700";
-  const jsonText = "text-slate-800";
+  const summaryText = "text-muted-foreground";
+  const jsonText = "text-foreground";
 
   return (
     <div className={cn(containerStyles, className)}>
@@ -107,7 +104,7 @@ export function PreviewSwitcher({
               }}
             />
           ) : (
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
               {availablePlatforms[0].charAt(0).toUpperCase() + availablePlatforms[0].slice(1)}
             </div>
           )}
@@ -119,7 +116,7 @@ export function PreviewSwitcher({
           <details
             className={cn(
               "rounded-xl border px-3 py-2",
-              theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5",
+              "border-border bg-muted",
             )}
           >
             <summary className={cn("cursor-pointer text-sm", summaryText)}>Raw JSON</summary>
@@ -135,7 +132,7 @@ export function PreviewSwitcher({
             <details
               className={cn(
                 "mt-3 rounded-xl border px-3 py-2",
-                theme === "light" ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5",
+                "border-border bg-muted",
               )}
             >
               <summary className={cn("cursor-pointer text-sm", summaryText)}>Raw JSON</summary>

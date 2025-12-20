@@ -88,8 +88,8 @@ export default function BillingPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Billing</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Billing</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Full Access: $120/month • 1000 generations per month
           </p>
         </div>
@@ -99,40 +99,40 @@ export default function BillingPage() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-sm text-slate-600">Status</div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="text-sm text-muted-foreground">Status</div>
           <div className="mt-2 flex items-center gap-2">
             <span
               className={cn(
                 "rounded-full border px-3 py-1 text-xs",
                 isActive
                   ? "border-green-200 bg-green-50 text-green-700"
-                  : "border-slate-200 bg-slate-50 text-slate-800",
+                  : "border-border bg-muted text-foreground",
               )}
             >
               {loading ? "…" : billingStatus}
             </span>
             {trialActive ? (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground">
                 Trial: {usage?.trialDaysLeft ?? "—"} days left
               </span>
             ) : null}
           </div>
 
-          <div className="mt-4 text-sm text-slate-600">
+          <div className="mt-4 text-sm text-muted-foreground">
             {loading ? (
               "Loading…"
             ) : usage?.quota?.scope === "trial_daily" ? (
               <>
                 Trial daily quota:{" "}
-                <span className="text-slate-900">
+                <span className="text-foreground">
                   {usage.quota.used} / {usage.quota.limit}
                 </span>
               </>
             ) : (
               <>
                 Monthly quota:{" "}
-                <span className="text-slate-900">
+                <span className="text-foreground">
                   {usage?.quota?.used ?? 0} / {usage?.quota?.limit ?? 1000}
                 </span>
               </>
@@ -140,8 +140,8 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-sm text-slate-600">Manage</div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="text-sm text-muted-foreground">Manage</div>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Button onClick={startCheckout} disabled={actionLoading}>
@@ -152,7 +152,7 @@ export default function BillingPage() {
             </Button>
           </div>
 
-          <div className="mt-3 text-xs text-slate-500">
+          <div className="mt-3 text-xs text-muted-foreground">
             Trial does not require payment. When trial ends, generation is blocked until
             you subscribe.
           </div>

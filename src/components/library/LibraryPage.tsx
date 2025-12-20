@@ -278,11 +278,11 @@ export function LibraryPage({ status }: { status: Status }) {
   }
 
   return (
-    <div className="text-slate-900">
+    <div className="text-foreground">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             {status === "generated"
               ? "Review content and accept or reject with a reason."
               : "Browse your library. You can undo back to Generated."}
@@ -291,13 +291,13 @@ export function LibraryPage({ status }: { status: Status }) {
         <Button
           variant="outline"
           onClick={() => load(true)}
-          className="border-slate-200 bg-white text-slate-800 hover:bg-teal-50 hover:text-teal-700"
+          className="border-border bg-card text-foreground hover:bg-teal-500/10 hover:text-teal-600"
         >
           Refresh
         </Button>
       </div>
 
-      <div className="mt-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4">
+      <div className="mt-6 grid gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:grid-cols-4">
         <div className="space-y-2">
           <Label>Platform</Label>
           <select
@@ -344,29 +344,29 @@ export function LibraryPage({ status }: { status: Status }) {
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
-          <div className="text-sm text-slate-600">Loading…</div>
+          <div className="text-sm text-muted-foreground">Loading…</div>
         ) : items.length ? (
           items.map((i) => (
-            <div key={i.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="bg-slate-100">
+            <div key={i.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="bg-muted">
                 <div className="relative aspect-square overflow-hidden">
                   {i.imageStatus === "ready" && i.imageUrl ? (
                     <img
                       src={i.imageUrl}
                       alt={i.title ?? "Generated image"}
-                      className="h-full w-full object-contain bg-slate-100"
+                      className="h-full w-full object-contain bg-muted"
                     />
                   ) : i.imageStatus === "generating" ? (
-                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <div className="flex h-full w-full items-center justify-center bg-muted text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Generating image…
                     </div>
                   ) : i.imageStatus === "failed" ? (
-                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-rose-50 px-4 text-center text-xs font-semibold text-rose-700">
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-rose-500/10 px-4 text-center text-xs font-semibold text-rose-700">
                       <div>Image failed. {i.imageError ?? ""}</div>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-rose-200 bg-white text-rose-700 hover:bg-rose-100"
+                        className="border-rose-200 bg-card text-rose-700 hover:bg-rose-500/10"
                         onClick={async () => {
                           await regenerateImage(i, "retry");
                         }}
@@ -375,26 +375,26 @@ export function LibraryPage({ status }: { status: Status }) {
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted via-muted/70 to-muted text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Preview coming soon
                     </div>
                   )}
                 </div>
               </div>
               <div className="p-4 space-y-2">
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted-foreground">
                   #{i.platform} • #{i.contentType}
                 </div>
                 <button
                   onClick={() => openPreview(i)}
-                  className="block text-left text-base font-semibold text-slate-900 underline-offset-4 hover:underline"
+                  className="block text-left text-base font-semibold text-foreground underline-offset-4 hover:underline"
                 >
                   {i.title ?? `${i.contentType} • ${i.platform}`}
                 </button>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted-foreground">
                   {new Date(i.createdAt).toLocaleString()}
                 </div>
-                <div className="text-sm text-slate-600 line-clamp-3">
+                <div className="text-sm text-muted-foreground line-clamp-3">
                   {i.caption ?? "Quick look at your most recent outputs. Accept or reject to teach the AI."}
                 </div>
 
@@ -410,7 +410,7 @@ export function LibraryPage({ status }: { status: Status }) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full rounded-lg border-rose-200 bg-white text-rose-700 shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-rose-50"
+                      className="w-full rounded-lg border-rose-200 bg-card text-rose-700 shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-rose-500/10"
                       onClick={() => openDecision(i, "reject")}
                     >
                       Reject
@@ -421,7 +421,7 @@ export function LibraryPage({ status }: { status: Status }) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full rounded-lg border-slate-200 bg-white text-slate-700 shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-900"
+                      className="w-full rounded-lg border-border bg-card text-muted-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-muted hover:text-foreground"
                       onClick={() => openUndo(i)}
                     >
                       Move back to Generated
@@ -434,7 +434,7 @@ export function LibraryPage({ status }: { status: Status }) {
                     onClick={() => openPreview(i)}
                     size="sm"
                     variant="outline"
-                    className="w-full rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    className="w-full rounded-lg border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
                     Preview
                   </Button>
@@ -442,7 +442,7 @@ export function LibraryPage({ status }: { status: Status }) {
                     onClick={() => openConfirm("regenerate", i)}
                     size="sm"
                     variant="outline"
-                    className="w-full rounded-lg border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    className="w-full rounded-lg border-border bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                     disabled={regeneratingId === i.id}
                   >
                     {regeneratingId === i.id ? "Regenerating..." : "Regenerate"}
@@ -461,20 +461,20 @@ export function LibraryPage({ status }: { status: Status }) {
             </div>
           ))
         ) : (
-          <div className="text-sm text-slate-600">No items yet.</div>
+          <div className="text-sm text-muted-foreground">No items yet.</div>
         )}
       </div>
 
       {previewOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 sm:px-6">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-border bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="text-sm text-slate-600">Preview</div>
-                <div className="mt-1 text-sm font-semibold text-slate-900">
+                <div className="text-sm text-muted-foreground">Preview</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
                   {selected.title ?? `${selected.contentType} • ${selected.platform}`}
                 </div>
-                <div className="mt-1 break-all text-xs text-slate-500">{selected.id}</div>
+                <div className="mt-1 break-all text-xs text-muted-foreground">{selected.id}</div>
               </div>
               <Button variant="outline" onClick={() => setPreviewOpen(false)}>
                 Close
@@ -499,7 +499,7 @@ export function LibraryPage({ status }: { status: Status }) {
                 </Button>
                 <Button
                   variant="outline"
-                  className="rounded-full border-rose-200 bg-white text-rose-700 hover:bg-rose-50"
+                  className="rounded-full border-rose-200 bg-card text-rose-700 hover:bg-rose-500/10"
                   onClick={() => openDecision(selected, "reject")}
                 >
                   Reject
@@ -517,7 +517,7 @@ export function LibraryPage({ status }: { status: Status }) {
               <div className="mt-6 flex items-center justify-end">
                 <Button
                   variant="outline"
-                  className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  className="rounded-full border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
                   onClick={() => openUndo(selected)}
                 >
                   Move back to Generated
@@ -538,11 +538,11 @@ export function LibraryPage({ status }: { status: Status }) {
 
       {decisionOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <div className="text-sm text-slate-600">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="text-sm text-muted-foreground">
               {decision === "accept" ? "Accept" : "Reject"} — reason required
             </div>
-            <div className="mt-2 text-sm font-semibold text-slate-900">
+            <div className="mt-2 text-sm font-semibold text-foreground">
               {selected.title ?? `${selected.contentType} • ${selected.platform}`}
             </div>
 
@@ -560,14 +560,14 @@ export function LibraryPage({ status }: { status: Status }) {
 
             {aiResponse ? (
               <div className="mt-4 flex items-start gap-3">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                <div className="grid h-9 w-9 place-items-center rounded-full bg-emerald-500/15 text-xs font-semibold text-emerald-200">
                   AI
                 </div>
                 <div className="max-w-[85%]">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     AI response
                   </div>
-                  <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-slate-800 shadow-sm">
+                  <div className="mt-1 rounded-2xl rounded-tl-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-foreground shadow-sm">
                     {aiResponse}
                   </div>
                 </div>
@@ -602,11 +602,11 @@ export function LibraryPage({ status }: { status: Status }) {
 
       {undoOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <div className="text-sm text-slate-600">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="text-sm text-muted-foreground">
               Move back to Generated — this will revert the learning snapshot
             </div>
-            <div className="mt-2 text-sm font-semibold text-slate-900">
+            <div className="mt-2 text-sm font-semibold text-foreground">
               {selected.title ?? `${selected.contentType} • ${selected.platform}`}
             </div>
 
@@ -632,14 +632,14 @@ export function LibraryPage({ status }: { status: Status }) {
 
       {confirmOpen && selected && confirmAction ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <div className="text-sm text-slate-600">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <div className="text-sm text-muted-foreground">
               {confirmAction === "delete" ? "Delete content" : "Regenerate image"}
             </div>
-            <div className="mt-2 text-sm font-semibold text-slate-900">
+            <div className="mt-2 text-sm font-semibold text-foreground">
               {selected.title ?? `${selected.contentType} • ${selected.platform}`}
             </div>
-            <div className="mt-3 text-sm text-slate-600">
+            <div className="mt-3 text-sm text-muted-foreground">
               {confirmAction === "delete"
                 ? "This will permanently remove the content and its related assets. This cannot be undone."
                 : "This will generate a new image for this content. The current image will be replaced once complete."}

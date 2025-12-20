@@ -22,7 +22,7 @@ export function ThemeToggle({
         className={
           value === "light"
             ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#00a390]"
-            : "bg-white text-slate-800 hover:bg-slate-100"
+            : "bg-card text-foreground hover:bg-muted"
         }
         onClick={() => onChange("light")}
       >
@@ -35,7 +35,7 @@ export function ThemeToggle({
         className={
           value === "dark"
             ? "bg-[color:#00bba7] text-white border-[color:#00bba7] hover:bg-[color:#009c8d]"
-            : "bg-white text-slate-800 hover:bg-slate-100"
+            : "bg-card text-foreground hover:bg-muted"
         }
         onClick={() => onChange("dark")}
       >
