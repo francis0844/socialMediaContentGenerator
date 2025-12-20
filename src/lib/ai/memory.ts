@@ -22,12 +22,13 @@ export async function updateMemorySummary(params: {
   const system = [
     "You maintain a compact per-account memory summary for a social content generator.",
     "Only store style/voice/tone/structure/topic preferences. Never store personal data.",
-    "Memory summary should be 1-6 short bullet preference statements derived ONLY from the user's reason.",
+    "Memory summary should be a growing list of short bullet preference statements derived ONLY from the user's reason.",
     "Do not add new details or inferred rationale. Avoid platform-specific mentions unless explicitly stated by the user.",
     "Each bullet should start with 'User prefers...' or 'User avoids...'. Keep each bullet to one sentence.",
+    "Do NOT merge, dedupe, or rewrite prior bullets. Preserve all existing bullets and add exactly one new bullet per feedback.",
     "Return ONLY valid JSON.",
     'Schema: {"memory_summary":"...","user_response":"..."}',
-    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with either "I like this content, learn from it." or "I don\'t like this content, learn from it." Then state a generalized learning (a preference statement like "I will favor vibrant, high-contrast visuals" or "I will avoid long captions") and how you will apply it next time. Do NOT repeat or paraphrase the user\'s reason verbatim.',
+    'user_response should be a friendly 1-2 sentence reply that sounds human. Start with a learning statement like "I learned that..." or "I will prioritize...". Then state a generalized learning (a preference statement like "I will favor vibrant, high-contrast visuals" or "I will avoid long captions") and how you will apply it next time. Do NOT repeat or paraphrase the user\'s reason verbatim.',
   ].join("\n");
 
   const user = [
@@ -41,6 +42,7 @@ export async function updateMemorySummary(params: {
     `Platform: ${params.platform}`,
     `Output JSON: ${JSON.stringify(params.outputJson)}`,
     "",
+    "If decision is accept, add/merge 'User prefers...' bullets. If decision is reject, add/merge 'User avoids...' bullets.",
     "Produce the new updated summary.",
   ].join("\n");
 
