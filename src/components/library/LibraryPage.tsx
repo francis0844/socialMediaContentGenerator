@@ -398,12 +398,43 @@ export function LibraryPage({ status }: { status: Status }) {
                   {i.caption ?? "Quick look at your most recent outputs. Accept or reject to teach the AI."}
                 </div>
 
-                <div className="pt-2 flex flex-wrap gap-2">
+                {status === "generated" ? (
+                  <div className="pt-3 grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={() => openDecision(i, "accept")}
+                      size="sm"
+                      className="w-full rounded-lg bg-emerald-600 text-white shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-emerald-700"
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-lg border-rose-200 bg-white text-rose-700 shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-rose-50"
+                      onClick={() => openDecision(i, "reject")}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-lg border-slate-200 bg-white text-slate-700 shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-slate-50 hover:text-slate-900"
+                      onClick={() => openUndo(i)}
+                    >
+                      Move back to Generated
+                    </Button>
+                  </div>
+                )}
+
+                <div className="pt-2 grid grid-cols-3 gap-2">
                   <Button
                     onClick={() => openPreview(i)}
                     size="sm"
                     variant="outline"
-                    className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    className="w-full rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                   >
                     Preview
                   </Button>
@@ -411,51 +442,20 @@ export function LibraryPage({ status }: { status: Status }) {
                     onClick={() => openConfirm("regenerate", i)}
                     size="sm"
                     variant="outline"
-                    className="rounded-full border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    className="w-full rounded-lg border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                     disabled={regeneratingId === i.id}
                   >
-                    {regeneratingId === i.id ? "Regenerating..." : "Regenerate image"}
+                    {regeneratingId === i.id ? "Regenerating..." : "Regenerate"}
                   </Button>
                   <Button
                     onClick={() => openConfirm("delete", i)}
                     size="sm"
                     variant="destructive"
-                    className="rounded-full bg-rose-600 text-white hover:bg-rose-700"
+                    className="w-full rounded-lg bg-rose-600 text-white hover:bg-rose-700"
                     disabled={deletingId === i.id}
                   >
                     {deletingId === i.id ? "Deleting..." : "Delete"}
                   </Button>
-                </div>
-
-                <div className="pt-2 flex flex-wrap gap-2">
-                  {status === "generated" ? (
-                    <>
-                      <Button
-                        onClick={() => openDecision(i, "accept")}
-                        size="sm"
-                        className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full border-rose-200 bg-white text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                        onClick={() => openDecision(i, "reject")}
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                      onClick={() => openUndo(i)}
-                    >
-                      Move back to Generated
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>

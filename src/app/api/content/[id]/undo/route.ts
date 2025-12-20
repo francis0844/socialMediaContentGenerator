@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       orderBy: { createdAt: "desc" },
     });
 
-    if (!lastFeedback?.previousMemorySnapshot) {
+    if (!lastFeedback) {
       return NextResponse.json(
         { ok: false, error: "UNDO_NOT_AVAILABLE" },
         { status: 400 },
@@ -48,10 +48,12 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         data: { status: "generated" },
       });
 
-      await tx.account.update({
-        where: { id: session.accountId },
-        data: { memorySummary: lastFeedback.previousMemorySnapshot ?? "" },
-      });
+      if (lastFeedback.previousMemorySnapshot !== null) {
+        await tx.account.update({
+          where: { id: session.accountId },
+          data: { memorySummary: lastFeedback.previousMemorySnapshot ?? "" },
+        });
+      }
 
       await tx.feedback.update({
         where: { id: lastFeedback.id },

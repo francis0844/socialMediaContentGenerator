@@ -33,13 +33,7 @@ export default function SettingsPage() {
   const [preferences, setPreferences] = useState<
     Array<{
       id: string;
-      decision: "accept" | "reject";
-      reason: string;
-      aiResponse: string;
-      createdAt: string;
-      title: string | null;
-      platform: string | null;
-      contentType: string | null;
+      text: string;
     }>
   >([]);
   const [prefsLoading, setPrefsLoading] = useState(false);
@@ -90,7 +84,7 @@ export default function SettingsPage() {
 
       try {
         setPrefsLoading(true);
-        const res = await fetch("/api/feedback", { cache: "no-store" });
+        const res = await fetch("/api/preferences", { cache: "no-store" });
         const json = await res.json();
         if (json?.ok && Array.isArray(json.items)) {
           setPreferences(json.items);
@@ -220,11 +214,17 @@ export default function SettingsPage() {
   }
 
   async function removePreference(id: string) {
+    const pref = preferences.find((p) => p.id === id);
+    if (!pref) return;
     setPrefRemovingId(id);
     setPrefModalResponse(null);
     setPrefsError(null);
     try {
-      const res = await fetch(`/api/feedback/${id}`, { method: "DELETE" });
+      const res = await fetch("/api/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferenceText: pref.text }),
+      });
       const json = await res.json();
       if (!res.ok || !json?.ok) throw new Error(json?.error ?? "REMOVE_FAILED");
       setPreferences((prev) => prev.filter((p) => p.id !== id));
@@ -446,13 +446,9 @@ export default function SettingsPage() {
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                            {pref.decision === "accept" ? "Like" : "Don't like"} •{" "}
-                            {pref.platform ?? "platform"} • {pref.contentType ?? "content"}
+                            Preference
                           </div>
-                          <div className="mt-1 text-sm font-semibold text-slate-900">
-                            {pref.title ?? "Untitled content"}
-                          </div>
-                          <div className="mt-1 text-xs text-slate-500">{new Date(pref.createdAt).toLocaleString()}</div>
+                          <div className="mt-1 text-sm text-slate-900">{pref.text}</div>
                         </div>
                         <Button
                           variant="outline"
@@ -463,9 +459,6 @@ export default function SettingsPage() {
                         >
                           {prefRemovingId === pref.id ? "Removing…" : "Remove"}
                         </Button>
-                      </div>
-                      <div className="mt-2 text-sm text-slate-600">
-                        {pref.reason}
                       </div>
                     </div>
                   ))}

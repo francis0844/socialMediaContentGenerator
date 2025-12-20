@@ -25,7 +25,7 @@ export async function updateMemorySummary(params: {
     "Keep it short and actionable (max ~10 bullet lines, <= 1200 characters).",
     "Return ONLY valid JSON.",
     'Schema: {"memory_summary":"...","user_response":"..."}',
-    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with either "I like this content..." or "I don\'t like this content..." followed by what was learned and why.',
+    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with either "I like this content, learn from it." or "I don\'t like this content, learn from it." Then state the key learning from the reason (not a rewrite of the reason) and how you will apply it next time.',
   ].join("\n");
 
   const user = [
@@ -97,6 +97,57 @@ export async function removeMemoryPreference(params: {
     `Content type: ${params.contentType}`,
     `Platform: ${params.platform}`,
     `Output JSON: ${JSON.stringify(params.outputJson)}`,
+    "",
+    "Produce the updated summary.",
+  ].join("\n");
+
+  const completion = await client.chat.completions.create({
+    model: env.OPENAI_MODEL,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+  });
+
+  const text = completion.choices[0]?.message?.content ?? "{}";
+  const json = JSON.parse(text) as Partial<MemoryUpdateResult>;
+  const memory_summary = (json.memory_summary ?? "").trim();
+  const user_response = (json.user_response ?? "").trim();
+
+  if (!memory_summary) throw new Error("MEMORY_UPDATE_FAILED");
+  if (!user_response) throw new Error("MEMORY_RESPONSE_FAILED");
+
+  return {
+    memorySummary: memory_summary.slice(0, 1200),
+    aiResponse: user_response.slice(0, 400),
+  };
+}
+
+export async function removeMemoryPreferenceByText(params: {
+  previousSummary: string;
+  preferenceText: string;
+}) {
+  const env = getServerEnv();
+  const client = getOpenAIClient();
+
+  const system = [
+    "You maintain a compact per-account memory summary for a social content generator.",
+    "Only store style/voice/tone/structure/topic preferences. Never store personal data.",
+    "Keep it short and actionable (max ~10 bullet lines, <= 1200 characters).",
+    "Return ONLY valid JSON.",
+    'Schema: {"memory_summary":"...","user_response":"..."}',
+    'user_response should be a friendly 1-2 sentence reply that sounds human and starts with "I removed that preference..." and confirms what changed.',
+  ].join("\n");
+
+  const user = [
+    "Remove the preference line below from the memory summary.",
+    "Do NOT add new preferences. Only remove or soften conflicting items.",
+    "",
+    `Preference to remove: ${params.preferenceText}`,
+    "",
+    `Previous summary:\n${params.previousSummary || "(none)"}`,
     "",
     "Produce the updated summary.",
   ].join("\n");
